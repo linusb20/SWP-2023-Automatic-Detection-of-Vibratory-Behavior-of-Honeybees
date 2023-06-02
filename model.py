@@ -1,4 +1,5 @@
 import torch
+from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence, PackedSequence 
 
 # N = Batch size
 # L = Sequence Length
@@ -40,19 +41,15 @@ class CNNEncoder(torch.nn.Module):
             torch.nn.Linear(256, 128),
         )
 
-    def forward(self, x):
-        h_list = []
-        num_frames = x.size(dim=1)
+    def forward(self, batch):
+        x, x_seq_lens = batch
+        x_packed = pack_padded_sequence(x, x_seq_lens.cpu(), batch_first=True, enforce_sorted=False) 
+        x = self.cnn(x_packed.data)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        h_packed = PackedSequence(x, x_packed.batch_sizes, x_packed.sorted_indices, x_packed.unsorted_indices)
+        return h_packed
 
-        for fi in range(num_frames):
-            frame = x[:, fi, :, :, :]
-            h = self.cnn(frame)
-            h = torch.flatten(h, 1)
-            h = self.fc(h)
-            h_list.append(h)
-
-        h_list = torch.stack(h_list, 0).transpose(0, 1)  # swap batch and sequence dimension
-        return h_list
 
 # N = Batch size
 # L = Sequence Length
@@ -73,8 +70,10 @@ class RNNDecoder(torch.nn.Module):
             torch.nn.Linear(64, num_classes),
         )
 
-    def forward(self, x):
+    def forward(self, x_packed):
         self.rnn.flatten_parameters()
-        out, _ = self.rnn(x)
-        logits = self.fc(out[:, -1, :])
+        out_packed, _ = self.rnn(x_packed)
+        out_unpacked, out_lens = pad_packed_sequence(out_packed, batch_first=True)
+        out = out_unpacked[torch.arange(out_unpacked.size(0)), out_lens - 1, :]
+        logits = self.fc(out)
         return logits

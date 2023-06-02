@@ -20,12 +20,11 @@ def load_gt_items(path):
     return items
 
 def custom_collate(data):
-    min_frames = min(x.shape[0] for x, _ in data) 
-    images = [torch.tensor(x[:min_frames, :, :, :]) for x, _ in data]
+    image_seq_lens = torch.tensor([img.shape[0] for img, _ in data])
+    images = [torch.tensor(img) for img, _ in data]
+    images = pad_sequence(images, batch_first=True)
     label = torch.tensor([torch.tensor(y) for _, y in data])
-    images = torch.stack(images)
-    # images = pad_sequence(images, batch_first=True, padding_value=-1)
-    return images, label
+    return images, image_seq_lens, label
 
 def main():
     gt_items = load_gt_items(cfg.PATH_PICKLE) 
@@ -75,11 +74,11 @@ def main():
     for epoch in range(cfg.NUM_EPOCHS):
         loss_list = []
         model.train()
-        for batch_idx, (images, label) in enumerate(train_dataloader):
+        for batch_idx, (images, image_seq_len, label) in enumerate(train_dataloader):
             images = images.to(cfg.DEVICE)
             label = label.to(cfg.DEVICE)
 
-            logits = model(images)
+            logits = model((images, image_seq_len))
             loss = torch.nn.functional.cross_entropy(logits, label)
             optimizer.zero_grad()
 

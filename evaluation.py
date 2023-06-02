@@ -5,10 +5,10 @@ import config as cfg
 
 def compute_accuracy(model, dataloader):
     correct, num_examples = 0, 0
-    for images, label in dataloader:
+    for images, image_seq_len, label in dataloader:
         images = images.to(cfg.DEVICE)
         label = label.to(cfg.DEVICE)
-        logits = model(images)
+        logits = model((images, image_seq_len))
         _, predicted = torch.max(logits, 1)
         num_examples += logits.size(0) # batch size
         correct += (predicted == label).sum()
@@ -16,10 +16,10 @@ def compute_accuracy(model, dataloader):
 
 def compute_confusion_matrix(model, dataloader):
     predicted_list, actual_list = [], []
-    for images, label in dataloader:
+    for images, image_seq_len, label in dataloader:
         images = images.to(cfg.DEVICE)
         label = label.to(cfg.DEVICE)
-        logits = model(images)
+        logits = model((images, image_seq_len))
         _, predicted = torch.max(logits, 1)
         predicted_list.extend(predicted.to("cpu"))
         actual_list.extend(label.to("cpu"))
