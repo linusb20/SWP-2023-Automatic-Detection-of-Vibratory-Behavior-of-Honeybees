@@ -50,7 +50,7 @@ class WDDDataset(Dataset):
 
     @staticmethod
     def load_waggle_images(waggle_path):
-        images = []
+        allImages = []
         waggle_dir = waggle_path.parent
         zip_file_path = os.path.join(waggle_dir, "images.zip")
         assert os.path.exists(zip_file_path) 
@@ -58,7 +58,8 @@ class WDDDataset(Dataset):
             image_fns = zf.namelist()
             for fn in image_fns:
                 with zf.open(fn, "r") as f:
-                    images.append(WDDDataset.load_image(f))
+                    allImages.append(WDDDataset.load_image(f))
+        images=allImages[::2] #slicing the list, taking every second frame but starting by the 0 
         return images
 
     @staticmethod
