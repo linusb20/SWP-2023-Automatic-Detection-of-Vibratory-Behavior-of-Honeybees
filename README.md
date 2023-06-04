@@ -8,5 +8,7 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ## TODO
 
--   [ ] image augmenation (blur, contrast, crop, translation, stretching, padding)
+-   [  ] image augmenation (blur, contrast, crop, translation, stretching, padding) (WIP)
 -   [ ] pretrain CNN to produce good image embeddings
+
+
