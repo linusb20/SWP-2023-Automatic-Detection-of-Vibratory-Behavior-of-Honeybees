@@ -14,20 +14,25 @@ class WDDDataset(Dataset):
         Args:
             gt_items: list of 4-tuples of `waggle_id`, `label`, `gt_angle`, `path`
         """
-        self.gt_df = pandas.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"])
+        self.gt_df = pandas.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"]) # from pickle 
         self.meta_data_paths = self.gt_df.path.values
         labels = self.gt_df.label.copy()
-        labels[labels == "trembling"] = "other"
+        labels[labels == "trembling"] = "other" # merge tembling and other 
         self.all_labels = ["other", "waggle", "ventilating", "activating"]
-        label_mapper = {s: i for i, s in enumerate(self.all_labels)}
+        label_mapper = {s: i for i, s in enumerate(self.all_labels)} # dict(other: 0, waggle: 1, ...)
         self.Y = np.array([label_mapper[l] for l in labels])
 
     def __len__(self):
         return len(self.meta_data_paths)
 
     def __getitem__(self, i):
+        '''method called by DataLoader'''
         images = WDDDataset.load_waggle_images(self.meta_data_paths[i])
         label = self.Y[i]
+
+        # TODO: image augmentation (what we have at this point: 1 video from one batch, consisting of k images)
+        # TODO: image shape should not change 
+
         transform = random.choice([
             lambda img: np.flip(img, axis=0),
             lambda img: np.flip(img, axis=1),
@@ -43,6 +48,8 @@ class WDDDataset(Dataset):
     @staticmethod
     def load_image(f):
         img = PIL.Image.open(f)
+
+        # mini image augmentation for every image (down sampling)
         img = np.asarray(img, dtype=np.float32)
         img = img / 255 * 2 - 1  # normalize to [-1, 1]
         img = sk_transform.resize(img, (110, 110))
@@ -50,6 +57,7 @@ class WDDDataset(Dataset):
 
     @staticmethod
     def load_waggle_images(waggle_path):
+        '''load images from one directory (= 1 video)'''
         images = []
         waggle_dir = waggle_path.parent
         zip_file_path = os.path.join(waggle_dir, "images.zip")
