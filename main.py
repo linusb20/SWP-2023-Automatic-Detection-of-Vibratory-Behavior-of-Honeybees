@@ -85,8 +85,11 @@ def main():
             loss.backward()
             optimizer.step()
 
-            print(f"Epoch {epoch} Batch: {batch_idx}")
-            print(f"Loss: {loss:.4f}")
+            # print current epoch & loss
+            if batch_idx % 10 == 0:
+                print(f"Epoch {epoch} Batch: {batch_idx}")
+                print(f"Loss: {loss:.4f}")
+                
             loss_list.append(loss.item())
         stats["loss_mean_list"].append(np.mean(loss_list))
         stats["loss_std_list"].append(np.std(loss_list))

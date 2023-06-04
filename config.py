@@ -12,7 +12,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 BATCH_SIZE = 16
 NUM_WORKERS = 4
-NUM_EPOCHS = 64
+NUM_EPOCHS = 1
 
 STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
 SAVE_PATH_ACCURACY = os.path.join(STATS_PATH, "accuracy.pdf")
