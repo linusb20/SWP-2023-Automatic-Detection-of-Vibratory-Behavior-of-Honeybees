@@ -76,7 +76,7 @@ class WDDDataset(Dataset):
         '''loads one image and casts it to np.array'''
         img = PIL.Image.open(filename)
 
-        # transform to uint8 (RGB 0-255)
+        # transform to uint8 (RGB 0-255) for image augmentation
         img:np.ndarray = np.asarray(img, dtype=np.uint8) 
       
         # mini image augmentation for every image (down sampling)
