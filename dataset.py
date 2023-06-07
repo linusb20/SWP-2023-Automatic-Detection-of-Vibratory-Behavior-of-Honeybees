@@ -1,12 +1,15 @@
 import os
 import random
-import numpy as np
-import pandas
 import PIL.Image
 import zipfile
 import json
+from typing import List
+
+import pandas
+import numpy as np
 import skimage.transform as sk_transform
 from torch.utils.data import Dataset
+import albumentations as A
 
 class WDDDataset(Dataset):
     def __init__(self, gt_items):
@@ -41,24 +44,48 @@ class WDDDataset(Dataset):
             lambda img: sk_transform.rotate(img, 270),
         ])
         images = [transform(img) for img in images]
+
+        # floatify images
+        images = [video.astype(np.float32) for video in images]
+
         images = np.expand_dims(images, axis=1)
 
         return images, label
 
-    @staticmethod
-    def load_image(f):
-        img = PIL.Image.open(f)
+    def init_augmenters(self):
+        p = 0.2 
+        
+        self.augmenter_quality = A.Compose([
+            A.MultiplicativeNoise(p=0.25 * p, multiplier=(0.9, 1.1), elementwise=True),
+            A.GaussNoise(p=0.5 * p, var_limit=(0, 0.1)),
+            A.GaussianBlur(p=0.25 * p, sigma_limit=(0.0, 0.5)),
+            A.RandomBrightnessContrast(
+                    p=0.5 * p, brightness_limit=(-0.5, 0.5), contrast_limit=(-0.5, 0.5)),
+        ])
 
+        self.augmenter_rescale = None 
+        self.augmenter = None 
+
+
+    #============== LOADING IMAGES ======================
+    @staticmethod
+    def load_image(filename) -> np.ndarray:
+        '''loads one image and casts it to np.array'''
+        img = PIL.Image.open(filename)
+
+        # transform to uint8 (RGB 0-255)
+        img:np.ndarray = np.asarray(img, dtype=np.uint8) 
+      
         # mini image augmentation for every image (down sampling)
-        img = np.asarray(img, dtype=np.float32)
         img = img / 255 * 2 - 1  # normalize to [-1, 1]
         img = sk_transform.resize(img, (110, 110))
+
         return img
 
     @staticmethod
-    def load_waggle_images(waggle_path):
+    def load_waggle_images(waggle_path) -> List[np.ndarray]:
         '''load images from one directory (= 1 video)'''
-        images = []
+        images: List[np.ndarray] = []
         waggle_dir = waggle_path.parent
         zip_file_path = os.path.join(waggle_dir, "images.zip")
         assert os.path.exists(zip_file_path) 
@@ -77,3 +104,4 @@ class WDDDataset(Dataset):
         waggle_duration = metadata["waggle_duration"]
         waggle_vector = np.array([np.cos(waggle_angle), np.sin(waggle_angle)], dtype=np.float32)
         return waggle_vector, waggle_duration
+
