@@ -3,9 +3,9 @@ import random
 import PIL.Image
 import zipfile
 import json
-from typing import List
+from typing import List, Tuple
 
-import pandas
+import pandas as pd
 import numpy as np
 import skimage.transform as sk_transform
 from torch.utils.data import Dataset
@@ -13,25 +13,28 @@ import albumentations as A
 
 class WDDDataset(Dataset):
     def __init__(self, gt_items):
-        """
-        Args:
-            gt_items: list of 4-tuples of `waggle_id`, `label`, `gt_angle`, `path`
-        """
-        self.gt_df = pandas.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"]) # from pickle 
-        self.meta_data_paths = self.gt_df.path.values
+        '''self.gt_df - pickle-file content stored in DataFrame'''
+        self.gt_df:pd.DataFrame = pd.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"]) # from pickle 
+
+        '''self.meta_data_paths - list of paths to different waggle.json files'''
+        self.meta_data_paths:pd.ArrayLike = self.gt_df.path.values
+
+        '''self.all_labels - list of all possible class labels'''
         labels = self.gt_df.label.copy()
         labels[labels == "trembling"] = "other" # merge tembling and other 
-        self.all_labels = ["other", "waggle", "ventilating", "activating"]
+        self.all_labels:List[str] = ["other", "waggle", "ventilating", "activating"]
+
+        '''self.Y - list containing actual class labels (int) for related videos accessable under self.meta_data_paths'''
         label_mapper = {s: i for i, s in enumerate(self.all_labels)} # dict(other: 0, waggle: 1, ...)
-        self.Y = np.array([label_mapper[l] for l in labels])
+        self.Y:np.ndarray[int] = np.array([label_mapper[l] for l in labels])
 
     def __len__(self):
         return len(self.meta_data_paths)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i:int) -> Tuple[List[np.ndarray], int]:
         '''method called by DataLoader'''
-        images = WDDDataset.load_waggle_images(self.meta_data_paths[i])
-        label = self.Y[i]
+        video_imgs:List[np.ndarray] = WDDDataset.load_waggle_images(self.meta_data_paths[i])
+        label:int = self.Y[i]
 
         # TODO: image augmentation (what we have at this point: 1 video from one batch, consisting of k images)
         # TODO: image shape should not change 
@@ -43,16 +46,16 @@ class WDDDataset(Dataset):
             lambda img: sk_transform.rotate(img, 180),
             lambda img: sk_transform.rotate(img, 270),
         ])
-        images = [transform(img) for img in images]
+        images = [transform(img) for img in video_imgs]
 
         # floatify images for training
-        images = [video.astype(np.float32) for video in images]
+        video_imgs = [img.astype(np.float32) for img in video_imgs]
 
-        images = np.expand_dims(images, axis=1)
+        video_imgs = np.expand_dims(video_imgs, axis=1)
 
-        return images, label
+        return video_imgs, label
 
-    def init_augmenters(self):
+    def init_augmenters(self) -> None:
         p = 0.2 
         
         self.augmenter_quality = A.Compose([

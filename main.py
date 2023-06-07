@@ -59,13 +59,13 @@ def main():
 
     # INIT. Datasets & Dataloader (Dataloader contains references to directories, such as label, path, angle, key)
     train_dataset = WDDDataset(gt_train_items)
+
     assert len(train_dataset) == len(train_indices)
     train_dataloader = DataLoader(train_dataset, batch_size=cfg.BATCH_SIZE, num_workers=cfg.NUM_WORKERS, shuffle=True, collate_fn=custom_collate)
 
     test_dataset = WDDDataset(gt_test_items)
     assert len(test_dataset) == len(test_indices)
     test_dataloader = DataLoader(test_dataset, batch_size=cfg.BATCH_SIZE, num_workers=cfg.NUM_WORKERS, shuffle=True, collate_fn=custom_collate) 
-
 
     # DEFINE MODEL
     model = torch.nn.Sequential(
