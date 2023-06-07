@@ -45,7 +45,7 @@ class WDDDataset(Dataset):
         ])
         images = [transform(img) for img in images]
 
-        # floatify images
+        # floatify images for training
         images = [video.astype(np.float32) for video in images]
 
         images = np.expand_dims(images, axis=1)
