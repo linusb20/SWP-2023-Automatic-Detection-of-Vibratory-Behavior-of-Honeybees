@@ -126,8 +126,8 @@ class WDDDataset(Dataset):
         '''aug_shape - augmenter for spatial change, e. g., shifts, tilts, rotations'''
         aug_shape = None 
 
-        '''aug_shape - augmenter for spatial change, e. g., shifts, tilts, rotations'''
-        aug_shape = None  
+        '''aug_shape - augmenter for normalizing pixel range'''
+        aug_normalize = None  
         
         p = 0.75
 
@@ -202,8 +202,8 @@ class WDDDataset(Dataset):
 
         self.augmenter = A.Compose([
             aug_resize,
-            aug_quality,
-            aug_shape,
+            #aug_quality,
+            #aug_shape,
             aug_normalize
         ])
 
