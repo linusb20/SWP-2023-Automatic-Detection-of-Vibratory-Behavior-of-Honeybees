@@ -46,7 +46,7 @@ def main():
 
     all_indices = np.arange(len(gt_items))
 
-    # SPLIT DIRECTORIES INTO TRAIN & TEST DATA (directories contain images + we know each label, e. g., activating)
+    # SPLIT DIRECTORIES INTO TRAIN & TEST DATA (directories contain video/images + we know each label, e. g., activating)
     mask = all_indices % 10 == 0
     test_indices = all_indices[mask]
     train_indices = all_indices[~mask]
@@ -90,12 +90,11 @@ def main():
     for epoch in range(cfg.NUM_EPOCHS):
         loss_list = []
         model.train()
-        for batch_idx, (images, image_seq_len, label) in enumerate(train_dataloader):
-            
-            images = images.to(cfg.DEVICE)
+        for batch_idx, (videos, videos_seq_len, label) in enumerate(train_dataloader):
+            videos = videos.to(cfg.DEVICE)
             label = label.to(cfg.DEVICE)
 
-            logits = model((images, image_seq_len))
+            logits = model((videos, videos_seq_len))
             loss = torch.nn.functional.cross_entropy(logits, label)
             optimizer.zero_grad()
 
@@ -108,6 +107,7 @@ def main():
                 print(f"Loss: {loss:.4f}")
 
             loss_list.append(loss.item())
+
         stats["loss_mean_list"].append(np.mean(loss_list))
         stats["loss_std_list"].append(np.std(loss_list))
 
