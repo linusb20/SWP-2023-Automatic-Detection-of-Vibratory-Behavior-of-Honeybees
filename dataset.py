@@ -3,7 +3,7 @@ import random
 import PIL.Image
 import zipfile
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import pandas as pd
 import numpy as np
@@ -42,11 +42,6 @@ class WDDDataset(Dataset):
         
         '''self.img_shape_original - original shape of image (width, height)'''
         self.img_shape_original:Tuple[int,int] = example_image.shape
-    
-        # IMAGE AUGMENTER
-        '''self.augmenter - augmenter for image augmentation'''
-        self.augmenter = None
-        self.init_augmenters()
 
     def __len__(self):
         return len(self.meta_data_paths)
@@ -64,19 +59,17 @@ class WDDDataset(Dataset):
         label:int = self.Y[i]
 
         # image augmentation (what we have at this point: 1 video from one batch, consisting of k images)
-        # TODO JOEL: same augmentations for all images of one video
-        aug_video_imgs = [self.augmenter(image=img)['image'] for img in video_imgs]
+        aug_video_imgs:Dict[str, np.ndarray] = self.augment_video(video=video_imgs)
 
         # adjusts image shape: floatify and dimension    
-        aug_video_imgs = [aug_img.astype(np.float32) for aug_img in aug_video_imgs]
+        aug_video_imgs = [aug_img.astype(np.float32) for aug_img in aug_video_imgs.values()]
         aug_video_imgs = np.expand_dims(aug_video_imgs, axis=1)
 
-        # logging
+        # logging shape und pixel range
         #print(f'Images had shape {self.img_shape_original}, now {np.array(aug_video_imgs[0]).shape}')
-        #print(f'Images pixel range was {np.min(video_imgs[0])},{np.max(video_imgs[0])}, now {np.min(aug_video_imgs[0])},{np.max(aug_video_imgs[0])}')
+        #print(f'Images pixel range was [{np.min(video_imgs[0])},{np.max(video_imgs[0])}], now [{np.min(aug_video_imgs[0])},{np.max(aug_video_imgs[0])}]')
 
         return aug_video_imgs, label
-
 
     #============== LOADING IMAGES ======================
     @staticmethod
@@ -114,7 +107,7 @@ class WDDDataset(Dataset):
 
 
     #============= IMAGE AUGMENTATION
-    def init_augmenters(self) -> None:
+    def augment_video(self, video:List[np.ndarray] ) -> Dict[str, np.ndarray]:
         '''initializes self.augmenter by defining different augmentations'''
 
         '''aug_resize - augmenter for resizing images (downsampling)'''
@@ -200,11 +193,24 @@ class WDDDataset(Dataset):
             mean=0.5, std=0.5, max_pixel_value=255
         )
 
-        self.augmenter = A.Compose([
-            aug_resize,
-            #aug_quality,
-            #aug_shape,
-            aug_normalize
-        ])
 
+        # AUGMENTER INIT
+        dictoINIT =  {} 
+        dictoCALL = {}
+        for i in range(1,len(video)):
+            dictoINIT[f'image{i}'] = "image"
+            dictoCALL[f'image{i}'] = video[i]
+
+        augmenter = A.Compose([
+                aug_resize,
+                aug_quality,
+                aug_shape,
+                aug_normalize
+            ],
+            additional_targets=dictoINIT
+        )
+
+        # AUGMENTER CALL
+        aug_video = augmenter(image=video[0], **dictoCALL)
+        return aug_video
 
