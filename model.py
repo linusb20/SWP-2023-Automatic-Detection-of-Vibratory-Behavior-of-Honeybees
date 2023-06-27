@@ -42,12 +42,12 @@ class CNNEncoder(torch.nn.Module):
         )
 
     def forward(self, batch):
-        x, x_seq_lens = batch
-        x_packed = pack_padded_sequence(x, x_seq_lens.cpu(), batch_first=True, enforce_sorted=False) 
-        x = self.cnn(x_packed.data)
+        video, video_lens = batch
+        video_packed = pack_padded_sequence(video, video_lens.cpu(), batch_first=True, enforce_sorted=False) 
+        x = self.cnn(video_packed.data) # video_packed.data contains all images of all videos in a batch
         x = torch.flatten(x, 1)
-        x = self.fc(x)
-        h_packed = PackedSequence(x, x_packed.batch_sizes, x_packed.sorted_indices, x_packed.unsorted_indices)
+        h = self.fc(x)
+        h_packed = PackedSequence(h, video_packed.batch_sizes, video_packed.sorted_indices, video_packed.unsorted_indices) # Replace images in PackedSequence with image embeddings
         return h_packed
 
 

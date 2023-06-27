@@ -28,12 +28,15 @@ def load_gt_items(path):
     return items
 
 def custom_collate(data):
-    ''' complicated (!) pre-processing to generate `PackedSequenze` used in RNN '''
-    image_seq_lens = torch.tensor([img.shape[0] for img, _ in data])
-    images = [torch.tensor(img) for img, _ in data]
-    images = pad_sequence(images, batch_first=True)
-    label = torch.tensor([torch.tensor(y) for _, y in data])
-    return images, image_seq_lens, label
+    """ Return custom batch tensors.
+    Pad videos to longest video length in a batch and save original video lengths.
+    Build batch tensor for padded videos, video lengths and labels
+    """
+    video_lens = torch.tensor([video.shape[0] for video, _ in data])
+    video = [torch.tensor(video) for video, _ in data]
+    video = pad_sequence(video, batch_first=True)
+    label = torch.tensor([torch.tensor(label) for _, label in data])
+    return video, video_lens, label
 
 def main():
     # LOAD PICKLE AND INITIALIZE PATHS
@@ -63,7 +66,7 @@ def main():
     train_sampler = WDDSampler(class_bins=train_dataset.class_bins, batch_size=cfg.BATCH_SIZE)
     train_dataloader = DataLoader(train_dataset, batch_sampler=train_sampler, num_workers=cfg.NUM_WORKERS, collate_fn=custom_collate)
 
-    test_dataset = WDDDataset(gt_test_items)
+    test_dataset = WDDDataset(gt_test_items, augment=False)
     assert len(test_dataset) == len(test_indices)
     test_dataloader = DataLoader(test_dataset, batch_size=cfg.BATCH_SIZE, num_workers=cfg.NUM_WORKERS, shuffle=True, collate_fn=custom_collate) 
 
@@ -94,7 +97,7 @@ def main():
         print(f"Loaded optimizer from {cfg.PATH_CHECKPOINT_RESTORE}")
 
     # TRAIN MODEL
-    stats = {
+    stats = ckpt["stats"] if "stats" in ckpt else {
         "train_acc_list": [],
         "test_acc_list": [],
         "loss_mean_list": [],
@@ -106,11 +109,11 @@ def main():
     for epoch in range(start_epoch, cfg.NUM_EPOCHS):
         loss_list = []
         model.train()
-        for batch_idx, (videos, videos_seq_len, label) in enumerate(train_dataloader):
-            videos = videos.to(cfg.DEVICE)
+        for batch_idx, (video, video_lens, label) in enumerate(train_dataloader):
+            video = video.to(cfg.DEVICE)
             label = label.to(cfg.DEVICE)
 
-            logits = model((videos, videos_seq_len))
+            logits = model((video, video_lens))
             loss = torch.nn.functional.cross_entropy(logits, label)
             optimizer.zero_grad()
 
@@ -143,6 +146,7 @@ def main():
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
+                "stats": stats,
             }, save_path)
             print(f"Saved model in epoch {epoch} to {save_path}")
 

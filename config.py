@@ -13,6 +13,11 @@ PATH_CHECKPOINT_RESTORE = None
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+IMG_W = 110
+IMG_H = 110
+IMG_MEAN = 0.5
+IMG_STD = 0.5
+
 BATCH_SIZE = 16
 NUM_WORKERS = 4
 NUM_EPOCHS = 64
