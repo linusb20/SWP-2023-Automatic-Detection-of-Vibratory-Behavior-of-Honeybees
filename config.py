@@ -8,11 +8,16 @@ import torch
 PATH_PICKLE = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth", "ground_truth_wdd_angles.pickle")
 PATH_IMAGES = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth")
 
+PATH_CHECKPOINT_DIR = os.path.join(os.getcwd(), "checkpoints")
+PATH_CHECKPOINT_RESTORE = None
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 BATCH_SIZE = 16
 NUM_WORKERS = 4
 NUM_EPOCHS = 64
+
+SAVE_INTERVAL = 1
 
 STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
 SAVE_PATH_ACCURACY = os.path.join(STATS_PATH, "accuracy.pdf")

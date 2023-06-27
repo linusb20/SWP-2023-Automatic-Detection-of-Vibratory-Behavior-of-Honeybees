@@ -75,10 +75,23 @@ def main():
 
     # use GPU if available and if more than 2 GPU, than parallelize
     model = model.to(cfg.DEVICE)
+
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
 
+    os.makedirs(cfg.PATH_CHECKPOINT_DIR, exist_ok=True)
+
+    ckpt = {}
+    if cfg.PATH_CHECKPOINT_RESTORE:
+        ckpt = torch.load(cfg.PATH_CHECKPOINT_RESTORE)
+        model.load_state_dict(ckpt["model_state_dict"])
+        print(f"Loaded model from {cfg.PATH_CHECKPOINT_RESTORE}")
+
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+
+    if cfg.PATH_CHECKPOINT_RESTORE:
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        print(f"Loaded optimizer from {cfg.PATH_CHECKPOINT_RESTORE}")
 
     # TRAIN MODEL
     stats = {
@@ -87,7 +100,10 @@ def main():
         "loss_mean_list": [],
         "loss_std_list": [],
     }
-    for epoch in range(cfg.NUM_EPOCHS):
+
+    start_epoch = ckpt["epoch"] + 1 if "epoch" in ckpt else 0
+
+    for epoch in range(start_epoch, cfg.NUM_EPOCHS):
         loss_list = []
         model.train()
         for batch_idx, (videos, videos_seq_len, label) in enumerate(train_dataloader):
@@ -120,6 +136,15 @@ def main():
             print(f"Testing Accuracy: {test_acc:.2f}%")
             stats["train_acc_list"].append(train_acc.item())
             stats["test_acc_list"].append(test_acc.item())
+
+        save_path = os.path.join(cfg.PATH_CHECKPOINT_DIR, f"epoch-{epoch:03}.pth")
+        if epoch % cfg.SAVE_INTERVAL == 0:
+            torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+            }, save_path)
+            print(f"Saved model in epoch {epoch} to {save_path}")
 
     with torch.no_grad():
         cm = compute_confusion_matrix(model, test_dataloader)
