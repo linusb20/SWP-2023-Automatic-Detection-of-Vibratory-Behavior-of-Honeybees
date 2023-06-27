@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
 import config as cfg
-from dataset import WDDDataset
+from dataset import WDDDataset, WDDSampler
 from model import CNNEncoder, RNNDecoder
 from evaluation import compute_accuracy, compute_confusion_matrix
 from plotting import plot_accuracy, plot_loss, plot_confusion_matrix, playback
@@ -59,9 +59,9 @@ def main():
 
     # INIT. Datasets & Dataloader (Dataloader contains references to directories, such as label, path, angle, key)
     train_dataset = WDDDataset(gt_train_items)
-
     assert len(train_dataset) == len(train_indices)
-    train_dataloader = DataLoader(train_dataset, batch_size=cfg.BATCH_SIZE, num_workers=cfg.NUM_WORKERS, shuffle=True, collate_fn=custom_collate)
+    train_sampler = WDDSampler(class_bins=train_dataset.class_bins, batch_size=cfg.BATCH_SIZE)
+    train_dataloader = DataLoader(train_dataset, batch_sampler=train_sampler, num_workers=cfg.NUM_WORKERS, collate_fn=custom_collate)
 
     test_dataset = WDDDataset(gt_test_items)
     assert len(test_dataset) == len(test_indices)

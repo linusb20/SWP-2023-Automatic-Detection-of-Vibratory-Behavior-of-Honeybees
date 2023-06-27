@@ -1,4 +1,5 @@
 import os
+import copy
 import random
 import PIL.Image
 import zipfile
@@ -32,6 +33,9 @@ class WDDDataset(Dataset):
         '''self.Y - list containing actual class labels (int) for related videos accessable under self.meta_data_paths'''
         label_mapper = {s: i for i, s in enumerate(self.all_labels)} # dict(other: 0, waggle: 1, ...)
         self.Y:np.ndarray[int] = np.array([label_mapper[l] for l in labels])
+        self.class_bins = [[] for _ in range(len(self.all_labels))]
+        for i, y in enumerate(self.Y):
+            self.class_bins[y].append(i)
 
         # IMAGE RESOLUTION
         '''self.img_reszie_factor - factor for resizing images, e. g., 0.5 makes (400p x 300p) -> (200p x 150p)'''
@@ -214,3 +218,23 @@ class WDDDataset(Dataset):
         aug_video = augmenter(image=video[0], **dictoCALL)
         return aug_video
 
+class WDDSampler():
+    def __init__(self, class_bins, batch_size):
+        self.batch_size = batch_size
+        self.class_bins = class_bins
+
+    def __iter__(self):
+        class_bins = copy.deepcopy(self.class_bins)
+        maxl = max(len(c) for c in class_bins)
+        for c in class_bins:
+            c += random.choices(c, k=maxl-len(c))
+        idx_list = [idx for c in class_bins for idx in c]
+        random.shuffle(idx_list)
+
+        batch_list = []
+        while(len(idx_list) >= self.batch_size):
+            batch = []
+            for _ in range(self.batch_size):
+                batch.append(idx_list.pop())
+            batch_list.append(batch)
+        return iter(batch_list)
