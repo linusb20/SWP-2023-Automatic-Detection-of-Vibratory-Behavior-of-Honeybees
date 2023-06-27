@@ -118,7 +118,7 @@ def main():
             optimizer.step()
 
             # print current epoch & loss
-            if batch_idx % 10 == 0:
+            if batch_idx % cfg.LOG_INTERVAL == 0:
                 print(f"Epoch {epoch} Batch: {batch_idx}")
                 print(f"Loss: {loss:.4f}")
 

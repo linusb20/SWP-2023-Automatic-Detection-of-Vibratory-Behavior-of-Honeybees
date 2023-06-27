@@ -17,6 +17,7 @@ BATCH_SIZE = 16
 NUM_WORKERS = 4
 NUM_EPOCHS = 64
 
+LOG_INTERVAL = 5
 SAVE_INTERVAL = 1
 
 STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
