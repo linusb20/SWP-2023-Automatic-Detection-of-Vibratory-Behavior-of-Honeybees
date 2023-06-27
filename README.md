@@ -8,7 +8,7 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ## TODO
 
--   [  ] image augmenation (blur, contrast, crop, translation, stretching, padding) (WIP)
+-   [ ] image augmenation (blur, contrast, crop, translation, stretching, padding) (WIP)
 -   [ ] pretrain CNN to produce good image embeddings
-
-
+-   [ ] write a custom batch sampler that samples training examples such that class labels are equally distributed ("other", "waggle", "ventilating", "activating" classes should have an equal chance of being sampled in a batch)
+-   [ ] save the state of the model and the state of the optimizer during training. See [here](https://pytorch.org/tutorials/beginner/saving_loading_models.html) for how to do this in pytorch
