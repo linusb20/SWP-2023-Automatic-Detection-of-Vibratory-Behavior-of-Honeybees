@@ -13,17 +13,17 @@ PATH_CHECKPOINT_RESTORE = None
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-IMG_W = 110
-IMG_H = 110
-IMG_MEAN = 0.5
-IMG_STD = 0.5
+IMG_W = 224
+IMG_H = 224
+IMG_MEAN = (0.485 + 0.456 + 0.406) / 3
+IMG_STD = (0.229 + 0.224 + 0.225) / 3
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 NUM_WORKERS = 4
-NUM_EPOCHS = 64
+NUM_EPOCHS = 128
 
 LOG_INTERVAL = 5
-SAVE_INTERVAL = 1
+SAVE_INTERVAL = 5
 
 STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
 SAVE_PATH_ACCURACY = os.path.join(STATS_PATH, "accuracy.pdf")

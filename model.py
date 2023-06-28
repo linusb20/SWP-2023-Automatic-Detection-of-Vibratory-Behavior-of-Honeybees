@@ -1,4 +1,5 @@
 import torch
+import torchvision.models as models
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence, PackedSequence 
 
 # N = Batch size
@@ -13,28 +14,18 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence, Packed
 class CNNEncoder(torch.nn.Module):
     def __init__(self):
         super().__init__()
+        resnet18 = models.resnet18(pretrained=True)
+        resnet18_cnn = list(resnet18.children())[:-1]
+        conv_weight = resnet18_cnn[0].weight
+        resnet18_cnn[0].in_channels = 1
+        resnet18_cnn[0].weight = torch.nn.Parameter(conv_weight.sum(dim=1, keepdim=True))
 
-        self.cnn = torch.nn.Sequential(
-            torch.nn.Conv2d(1, 16, kernel_size=5, padding="same"),
-            torch.nn.BatchNorm2d(16),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(2),
-            torch.nn.Conv2d(16, 32, kernel_size=5, padding="same"),
-            torch.nn.BatchNorm2d(32),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(2),
-            torch.nn.Conv2d(32, 64, kernel_size=5, padding="same"),
-            torch.nn.BatchNorm2d(64),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(2),
-            torch.nn.Conv2d(64, 128, kernel_size=5, padding="same"),
-            torch.nn.BatchNorm2d(128),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.MaxPool2d(2),
-        )
+        self.cnn = torch.nn.Sequential(*resnet18_cnn)
+
+        in_features = resnet18.fc.in_features
 
         self.fc = torch.nn.Sequential(
-            torch.nn.Linear(128 * 6 * 6, 256),
+            torch.nn.Linear(in_features, 256),
             torch.nn.BatchNorm1d(256),
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(0.3),
@@ -44,8 +35,11 @@ class CNNEncoder(torch.nn.Module):
     def forward(self, batch):
         video, video_lens = batch
         video_packed = pack_padded_sequence(video, video_lens.cpu(), batch_first=True, enforce_sorted=False) 
-        x = self.cnn(video_packed.data) # video_packed.data contains all images of all videos in a batch
-        x = torch.flatten(x, 1)
+
+        with torch.no_grad():
+            x = self.cnn(video_packed.data) # video_packed.data contains all images of all videos in a batch
+            x = torch.flatten(x, 1)
+
         h = self.fc(x)
         h_packed = PackedSequence(h, video_packed.batch_sizes, video_packed.sorted_indices, video_packed.unsorted_indices) # Replace images in PackedSequence with image embeddings
         return h_packed
