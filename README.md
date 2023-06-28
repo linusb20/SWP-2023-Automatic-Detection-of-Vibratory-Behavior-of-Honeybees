@@ -8,18 +8,32 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ## Results
 
-Model: CNN (4 x Conv2d + BN + ReLU + MaxPool) + LSTM (1 x 128)
-Optimizer: Adam (lr=1e-5)
-Criterion: Cross Entropy
-Batch Size: 16
-Batch Sampler: None
-Epochs: 64
-Image Augmentation: Random Roation / Flip on each image in video
-Image Size: 110 x 110
-Image Normalization: Mean=0.5, Std=0.5 (Range=[-1,1])
+<table>
+      <tr><td><b>Model</b></td><td>CNN (4 x Conv2d + BN + ReLU + MaxPool) + LSTM (1 x 128)</td></tr>
+      <tr></tr>
+      <tr><td><b>Optimizer</b></td><td>Adam, LR=1e-5</td></tr>
+      <tr></tr>
+      <tr><td><b>Criterion</b></td><td>Cross Entropy</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Size</b></td><td>16</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Sampler</b></td><td>None</td></tr>
+      <tr></tr>
+      <tr><td><b>Epochs</b></td><td>64</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Augmentation</b></td><td>Random Roation / Flip for each image in video</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Size</b></td><td>110 x 110</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Normalization</b></td><td>Mean=0.5, Std=0.5 (Range=[-1,1])</td></tr>
+      <tr></tr>
+      <tr><td><b>Input Format</b></td><td>16 x L x 1 x 110 x 110 (No Padding / Trimming)</td></tr>
+      <tr></tr>
+      <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
+</table>
 
-![Accuracy](stats_20230602T2153/accuracy.png)
-![Confusion Matrix](stats_20230602T2153/accuracy.png)
+![Accuracy](stats_20230602T2153/accuracy.jpg)
+![Confusion Matrix](stats_20230602T2153/confusion.jpg)
 
 ## TODO
 
