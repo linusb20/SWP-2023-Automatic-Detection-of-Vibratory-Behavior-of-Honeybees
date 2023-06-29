@@ -118,11 +118,11 @@ class WDDDataset(Dataset):
         """aug_shape - augmenter for normalizing pixel range"""
         aug_normalize = None  
 
+        p = 0.75
+
         transforms = []
        
         if "resize" in augments:
-            p = 0.75
-
             # AUGMENTER
             aug_resize =  A.Compose([
                 A.Resize(
