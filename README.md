@@ -21,7 +21,7 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr></tr>
       <tr><td><b>Epochs</b></td><td>64</td></tr>
       <tr></tr>
-      <tr><td><b>Image Augmentation</b></td><td>One of Roation90, Rotation180, Rotation270, FlipHorizontal, FlipVertical for each image in video</td></tr>
+      <tr><td><b>Image Augmentation</b></td><td>One of Roation90, Rotation180, Rotation270, FlipHorizontal, FlipVertical</td></tr>
       <tr></tr>
       <tr><td><b>Image Size</b></td><td>110 x 110</td></tr>
       <tr></tr>
@@ -34,6 +34,8 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ![Accuracy](stats_20230602T2153/accuracy.jpg)
 ![Confusion Matrix](stats_20230602T2153/confusion.jpg)
+
+Commit: 88d970d3a00ca256deca7df1c247fb15534aedfb
 
 ---
 
@@ -64,6 +66,8 @@ mean loss at each epoch and confusion matrix from the trained model.
 ![Accuracy](stats_20230628T2053/accuracy.jpg)
 ![Confusion Matrix](stats_20230628T2053/confusion.jpg)
 
+Commit: 752247b39ea119aeb035c3890389d617235ddb0f
+
 ---
 
 <table>
@@ -92,6 +96,8 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ![Accuracy](stats_20230629T1351/accuracy.jpg)
 ![Confusion Matrix](stats_20230629T1351/confusion.jpg)
+
+Commit: 1759dd9186f721af0180c30c0572f13b75b10826
 
 ## TODO
 
