@@ -35,7 +35,7 @@ mean loss at each epoch and confusion matrix from the trained model.
 ![Accuracy](stats_20230602T2153/accuracy.jpg)
 ![Confusion Matrix](stats_20230602T2153/confusion.jpg)
 
-Commit: 88d970d3a00ca256deca7df1c247fb15534aedfb
+[Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/88d970d3a00ca256deca7df1c247fb15534aedfb)
 
 ---
 
@@ -66,7 +66,7 @@ Commit: 88d970d3a00ca256deca7df1c247fb15534aedfb
 ![Accuracy](stats_20230628T2053/accuracy.jpg)
 ![Confusion Matrix](stats_20230628T2053/confusion.jpg)
 
-Commit: 752247b39ea119aeb035c3890389d617235ddb0f
+[Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/752247b39ea119aeb035c3890389d617235ddb0f)
 
 ---
 
@@ -97,7 +97,7 @@ Commit: 752247b39ea119aeb035c3890389d617235ddb0f
 ![Accuracy](stats_20230629T1351/accuracy.jpg)
 ![Confusion Matrix](stats_20230629T1351/confusion.jpg)
 
-Commit: 1759dd9186f721af0180c30c0572f13b75b10826
+[Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/1759dd9186f721af0180c30c0572f13b75b10826)
 
 ## TODO
 
