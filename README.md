@@ -35,6 +35,8 @@ mean loss at each epoch and confusion matrix from the trained model.
 ![Accuracy](stats_20230602T2153/accuracy.jpg)
 ![Confusion Matrix](stats_20230602T2153/confusion.jpg)
 
+---
+
 <table>
       <tr><td><b>Model</b></td><td>Pretrained Resnet18 CNN + LSTM (1 x 128)</td></tr>
       <tr></tr>
