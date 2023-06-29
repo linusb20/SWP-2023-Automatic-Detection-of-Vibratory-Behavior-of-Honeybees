@@ -21,7 +21,7 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr></tr>
       <tr><td><b>Epochs</b></td><td>64</td></tr>
       <tr></tr>
-      <tr><td><b>Image Augmentation</b></td><td>Random Roation / Flip for each image in video</td></tr>
+      <tr><td><b>Image Augmentation</b></td><td>One of Roation90, Rotation180, Rotation270, FlipHorizontal, FlipVertical for each image in video</td></tr>
       <tr></tr>
       <tr><td><b>Image Size</b></td><td>110 x 110</td></tr>
       <tr></tr>
@@ -63,6 +63,35 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 ![Accuracy](stats_20230628T2053/accuracy.jpg)
 ![Confusion Matrix](stats_20230628T2053/confusion.jpg)
+
+---
+
+<table>
+      <tr><td><b>Model</b></td><td>CNN (4 x Conv2d + BN + ReLU + MaxPool) + LSTM (1 x 128)</td></tr>
+      <tr></tr>
+      <tr><td><b>Optimizer</b></td><td>Adam, LR=1e-5</td></tr>
+      <tr></tr>
+      <tr><td><b>Criterion</b></td><td>Cross Entropy</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Size</b></td><td>16</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Sampler</b></td><td>Oversampling of minority classes for equal class distribution</td></tr>
+      <tr></tr>
+      <tr><td><b>Epochs</b></td><td>64</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Augmentation</b></td><td>Sequence of Multiplicative Noise (p=0.75), GaussianNoise (p=0.75), GaussianBlur (p=0.75), RandomBrightnessContrast (p=0.75) + Affine (Translation, Shear, Scale) (p=0.75)</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Size</b></td><td>110 x 110</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Normalization</b></td><td>Mean=0.5, Std=0.5, (Range=[-1,1]) 
+      <tr></tr>
+      <tr><td><b>Input Format</b></td><td>16 x L x 1 x 110 x 110 (No Padding / Trimming)</td></tr>
+      <tr></tr>
+      <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
+</table>
+
+![Accuracy](stats_20230629T1351/accuracy.jpg)
+![Confusion Matrix](stats_20230629T1351/confusion.jpg)
 
 ## TODO
 
