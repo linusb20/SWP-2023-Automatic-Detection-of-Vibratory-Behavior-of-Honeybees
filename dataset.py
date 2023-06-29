@@ -118,8 +118,6 @@ class WDDDataset(Dataset):
         """aug_shape - augmenter for normalizing pixel range"""
         aug_normalize = None  
 
-        p = 0.75
-
         transforms = []
        
         if "resize" in augments:
@@ -145,19 +143,19 @@ class WDDDataset(Dataset):
                 # 
                 # `arg elementwise=True` 
                 #   True --> each pixel p uses different factor v to create p'=p*v 
-                A.MultiplicativeNoise(p=p, multiplier=(0.75, 1.25), elementwise=True),
+                A.MultiplicativeNoise(p=0.5, multiplier=(0.75, 1.25), elementwise=True),
 
                 # A.GaussNoise() --- produces noisy image
                 #
                 # `arg var_limit(a, b)`
                 #   defines range for variance (randomly sampled), where a is min and b is max
-                A.GaussNoise(p=p, var_limit=(0, 10)),
+                A.GaussNoise(p=0.25, var_limit=(0, 10)),
 
                 # A.GaussianBlur() --- produces blurry image
                 #
                 # `arg sigma_limit(a, b)`
                 #   defines range for blur, where a is min and b is max
-                A.GaussianBlur(p=p, sigma_limit=(0.0, 0.75), always_apply=True),
+                A.GaussianBlur(p=0.55, sigma_limit=(0.0, 0.75), always_apply=True),
 
                 # A.RandomBrightnessContrast() --- affects brightness (light/dark) and contrast
                 #
@@ -166,12 +164,21 @@ class WDDDataset(Dataset):
                 #
                 # `arg contrast_limit(a, b)`
                 #   defines range for contrast_limit, where a is min and b is max
-                A.RandomBrightnessContrast(p=p, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5))
+                A.RandomBrightnessContrast(p=0.6, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
+
+                A.RandomGamma(p=0.5),
             ])
             transforms.append(aug_quality)
 
         if "shape" in augments:
             aug_shape = A.Compose([
+                A.OneOf([
+                    A.HorizontalFlip(), 
+                    A.VerticalFlip()
+                ], p=0.8),
+
+                A.RandomRotate90(p=0.5),
+
                 #  A.Affine() --- rotation, zoom, shift
                 #
                 # `arg translate_percent(dict)`
@@ -183,7 +190,7 @@ class WDDDataset(Dataset):
                 # `arg scale(dict)`
                 #   zooms on different axis
                 A.Affine(
-                    p=p,
+                    p=0.5,
                     translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)},
                     shear=(-5, 5),
                     scale={"x": (0.9,1.1), "y": (0.9,1.1)},
