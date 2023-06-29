@@ -23,7 +23,7 @@ NUM_WORKERS = 4
 NUM_EPOCHS = 64
 
 LOG_INTERVAL = 5
-SAVE_INTERVAL = 1
+SAVE_INTERVAL = 5
 
 STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
 SAVE_PATH_ACCURACY = os.path.join(STATS_PATH, "accuracy.pdf")
