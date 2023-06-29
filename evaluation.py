@@ -1,5 +1,5 @@
 import torch
-from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, precision_recall_fscore_support, accuracy_score
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
 
 import config as cfg
 
@@ -22,10 +22,6 @@ def compute_accuracy(model, dataloader):
 def compute_confusion_matrix(model, dataloader):
     predicted_list, actual_list = compute_predicted_actual(model, dataloader)
     return confusion_matrix(actual_list, predicted_list)
-
-def compute_precision_recall_fscore(model, dataloader):
-    predicted_list, actual_list = compute_predicted_actual(model, dataloader)
-    return precision_recall_fscore_support(actual_list, predicted_list, average=None) 
 
 def compute_metrics(model, dataloader, metrics):
     values = {}

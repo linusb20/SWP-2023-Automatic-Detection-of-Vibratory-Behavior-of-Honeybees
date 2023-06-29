@@ -10,7 +10,7 @@ from torch.nn.utils.rnn import pad_sequence
 import config as cfg
 from dataset import WDDDataset, WDDSampler
 from model import CNNEncoder, RNNDecoder
-from evaluation import compute_accuracy, compute_confusion_matrix
+from evaluation import compute_accuracy, compute_metrics
 from plotting import plot_accuracy, plot_loss, plot_confusion_matrix, playback
 
 def load_gt_items(path):
@@ -150,8 +150,17 @@ def main():
             }, save_path)
             print(f"Saved model in epoch {epoch} to {save_path}")
 
+    model.eval()
     with torch.no_grad():
-        cm = compute_confusion_matrix(model, test_dataloader)
+        metrics = compute_metrics(model, test_dataloader, metrics=["confusion_matrix", "precision", "recall", "fscore"])
+        stats.update({k: metrics[k].tolist() for k in ["precision", "recall", "fscore"]})
+        cm = metrics["confusion_matrix"]
+        other_precision, waggle_precision, ventilating_precision, activating_precision = metrics["precision"]
+        other_recall, waggle_recall, ventilating_recall, activating_recall = metrics["recall"]
+        other_fscore, waggle_fscore, ventilating_fscore, activating_fscore = metrics["fscore"]
+        print(f"waggle_precision: {waggle_precision:.3f}, waggle_recall: {waggle_recall:.3f}, waggle_fscore: {waggle_fscore:.3f}")
+        print(f"ventilating_precision: {ventilating_precision:.3f}, ventilating_recall: {ventilating_recall:.3f}, ventilating_fscore: {ventilating_fscore:.3f}")
+        print(f"activating_precision: {activating_precision:.3f}, activating_recall: {activating_recall:.3f}, activating_fscore: {activating_fscore:.3f}")
 
     os.makedirs(cfg.STATS_PATH)
     plot_accuracy(stats["train_acc_list"], stats["test_acc_list"], cfg.SAVE_PATH_ACCURACY)
