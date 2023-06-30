@@ -4,6 +4,7 @@ import PIL.Image
 import zipfile
 import json
 from typing import List, Tuple, Dict
+import numpy.typing as npt 
 
 import pandas as pd
 import numpy as np
@@ -21,7 +22,7 @@ class WDDDataset(Dataset):
         self.gt_df:pd.DataFrame = pd.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"]) # from pickle 
 
         '''self.meta_data_paths - list of paths to different waggle.json files'''
-        self.meta_data_paths:pd.ArrayLike = self.gt_df.path.values
+        self.meta_data_paths:np.ndarray = self.gt_df.path.to_numpy()
 
         # CLASS LABELS
         '''self.all_labels - list of all possible class labels'''
@@ -31,7 +32,7 @@ class WDDDataset(Dataset):
 
         '''self.Y - list containing actual class labels (int) for related videos accessable under self.meta_data_paths'''
         label_mapper = {s: i for i, s in enumerate(self.all_labels)} # dict(other: 0, waggle: 1, ...)
-        self.Y:np.ndarray[int] = np.array([label_mapper[l] for l in labels])
+        self.Y:npt.NDArray[np.int64] = np.array([label_mapper[l] for l in labels])
 
         # IMAGE RESOLUTION
         '''self.img_reszie_factor - factor for resizing images, e. g., 0.5 makes (400p x 300p) -> (200p x 150p)'''
@@ -46,7 +47,7 @@ class WDDDataset(Dataset):
     def __len__(self):
         return len(self.meta_data_paths)
 
-    def __getitem__(self, i:int) -> Tuple[List[np.ndarray], int]:
+    def __getitem__(self, i:int) -> Tuple[np.ndarray, int]:
         '''
         Method called by DataLoader to get one video and its related class label for classification.
 
@@ -54,15 +55,15 @@ class WDDDataset(Dataset):
             - performs image augmentation for all images
             - adjusts image shape: floatify and dimension        
         '''
-        # load video
+        # load video (what we have at this point: 1 video from one batch, consisting of k images)
         video_imgs:List[np.ndarray] = WDDDataset.load_waggle_images(self.meta_data_paths[i])
         label:int = self.Y[i]
 
-        # image augmentation (what we have at this point: 1 video from one batch, consisting of k images)
-        aug_video_imgs:Dict[str, np.ndarray] = self.augment_video(video=video_imgs)
+        # image augmentation 
+        aug_video_imgs_dict:Dict[str, np.ndarray] = self.augment_video(video=video_imgs)
 
-        # adjusts image shape: floatify and dimension    
-        aug_video_imgs = [aug_img.astype(np.float32) for aug_img in aug_video_imgs.values()]
+        # adjust image shape: floatify and dimension    
+        aug_video_imgs:np.ndrray = np.array([aug_img.astype(np.float32) for aug_img in aug_video_imgs_dict.values()])
         aug_video_imgs = np.expand_dims(aug_video_imgs, axis=1)
 
         # logging shape und pixel range
@@ -211,6 +212,7 @@ class WDDDataset(Dataset):
         )
 
         # AUGMENTER CALL
+        # random.seed(random.randint(1, 1000)) # random unnesseccary because we want different augmentations for each video
         aug_video = augmenter(image=video[0], **dictoCALL)
         return aug_video
 
