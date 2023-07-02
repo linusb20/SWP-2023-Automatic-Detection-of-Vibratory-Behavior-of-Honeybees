@@ -62,7 +62,7 @@ class RNNDecoder(torch.nn.Module):
     def __init__(self, num_classes=4):
         super().__init__()
 
-        self.rnn = torch.nn.LSTM(input_size=128, hidden_size=128, num_layers=1, batch_first=True)
+        self.rnn = torch.nn.GRU(input_size=128, hidden_size=128, num_layers=1, batch_first=True)
         self.fc = torch.nn.Sequential(
             torch.nn.Linear(128, 64),
             torch.nn.ReLU(inplace=True),
