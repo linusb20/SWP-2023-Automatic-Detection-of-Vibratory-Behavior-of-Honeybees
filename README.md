@@ -131,7 +131,7 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr></tr>
       <tr><td><b>Epochs</b></td><td>64</td></tr>
       <tr></tr>
-      <tr><td><b>Image Augmentation</b></td><td>Sequence of [Multiplicative Noise (p=0.5), GaussianNoise (p=0.25), GaussianBlur (p=0.55), RandomBrightnessContrast (p=0.6), RandomGamma (p=0.5)] + Sequence of [One of [HorizontalFlip, VerticalFlip] (p=0.8), RandomRotate90 (p=0.5), Affine (Translation, Shear, Scale) (p=0.75)] </td></tr>
+      <tr><td><b>Image Augmentation</b></td><td>Sequence of [Multiplicative Noise (p=0.5), GaussianNoise (p=0.25), GaussianBlur (p=0.55), RandomBrightnessContrast (p=0.6), RandomGamma (p=0.5)] + Sequence of [One of [HorizontalFlip, VerticalFlip] (p=0.8), RandomRotate90 (p=0.5), Affine (Translation, Shear, Scale) (p=0.5)] </td></tr>
       <tr></tr>
       <tr><td><b>Image Size</b></td><td>110 x 110</td></tr>
       <tr></tr>
