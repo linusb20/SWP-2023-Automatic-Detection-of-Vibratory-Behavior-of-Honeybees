@@ -61,7 +61,7 @@ def main():
     gt_test_items = [gt_items[i] for i in test_indices]
 
     # INIT. Datasets & Dataloader (Dataloader contains references to directories, such as label, path, angle, key)
-    train_dataset = WDDDataset(gt_train_items, augment=False)
+    train_dataset = WDDDataset(gt_train_items, augment=True)
     assert len(train_dataset) == len(train_indices)
     train_sampler = WDDSampler(class_bins=train_dataset.class_bins, batch_size=cfg.BATCH_SIZE)
     train_dataloader = DataLoader(train_dataset, batch_sampler=train_sampler, num_workers=cfg.NUM_WORKERS, collate_fn=custom_collate)

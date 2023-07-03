@@ -120,9 +120,9 @@ class WDDDataset(Dataset):
 
         transforms = []
        
-        if "resize" in augments:
-            p = 0.75
+        p = 0.75 * np.random.rand()
 
+        if "resize" in augments:
             # AUGMENTER
             aug_resize =  A.Compose([
                 A.Resize(
