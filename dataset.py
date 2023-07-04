@@ -4,34 +4,25 @@ import random
 import PIL.Image
 import zipfile
 import json
-from typing import List, Tuple, Dict
 import pandas as pd
 import numpy as np
-from torch.utils.data import Dataset
 import albumentations as A
+import torch
+from torch.utils.data import Dataset
+from torch.nn.utils.rnn import pad_sequence
 
-import config as cfg
+import config
 
 class WDDDataset(Dataset):
     def __init__(self, gt_items, augment=True):
-
         self.augment = augment
-        # PICKLE FILE
-        """self.gt_df - pickle-file content stored in DataFrame"""
-        self.gt_df:pd.DataFrame = pd.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"]) # from pickle 
-
-        """self.meta_data_paths - list of paths to different waggle.json files"""
-        self.meta_data_paths:pd.ArrayLike = self.gt_df.path.values
-
-        # CLASS LABELS
-        """self.all_labels - list of all possible class labels"""
+        self.gt_df= pd.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"])
+        self.meta_data_paths = self.gt_df.path.values
         labels = self.gt_df.label.copy()
         labels[labels == "trembling"] = "other" # merge tembling and other 
-        self.all_labels:List[str] = ["other", "waggle", "ventilating", "activating"]
-
-        """self.Y - list containing actual class labels (int) for related videos accessable under self.meta_data_paths"""
-        label_mapper = {s: i for i, s in enumerate(self.all_labels)} # dict(other: 0, waggle: 1, ...)
-        self.Y:np.ndarray[int] = np.array([label_mapper[l] for l in labels])
+        self.all_labels = ["other", "waggle", "ventilating", "activating"]
+        label_mapper = {s: i for i, s in enumerate(self.all_labels)}
+        self.Y = np.array([label_mapper[l] for l in labels])
         self.class_bins = [[] for _ in range(len(self.all_labels))]
         for i, y in enumerate(self.Y):
             self.class_bins[y].append(i)
@@ -39,49 +30,33 @@ class WDDDataset(Dataset):
     def __len__(self):
         return len(self.meta_data_paths)
 
-    def __getitem__(self, i:int) -> Tuple[List[np.ndarray], int]:
-        """
-        Method called by DataLoader to get one video and its related class label for classification.
+    def __getitem__(self, i):
+        """Method called by DataLoader to get one video and its related class label for classification"""
 
-            - loads video (= k images) from OS directory
-            - performs image augmentation for all images
-            - adjusts image shape: floatify and dimension        
-        """
-        # load video
-        video_imgs:List[np.ndarray] = WDDDataset.load_waggle_images(self.meta_data_paths[i])
-        label:int = self.Y[i]
+        video = WDDDataset.load_waggle_images(self.meta_data_paths[i]) # min video length is 95
+        label = self.Y[i]
 
         augments = ["resize", "normalize"]
         if self.augment:
             augments.extend(["shape", "quality"])
 
-        # image augmentation (what we have at this point: 1 video from one batch, consisting of k images)
-        aug_video_imgs:Dict[str, np.ndarray] = self.augment_video(
-            video=video_imgs, 
-            augments=augments
-        )
+        video = self.augment_video(video, augments=augments)
+        video = [img.astype(np.float32) for img in video]
+        video = np.expand_dims(video, axis=1)
 
-        # adjusts image shape: floatify and dimension    
-        aug_video_imgs = [aug_img.astype(np.float32) for aug_img in aug_video_imgs.values()]
-        aug_video_imgs = np.expand_dims(aug_video_imgs, axis=1)
+        return video, label
 
-        return aug_video_imgs, label
-
-    #============== LOADING IMAGES ======================
     @staticmethod
-    def load_image(filename) -> np.ndarray:
-        """loads one image and casts it to np.array"""
+    def load_image(filename):
+        """Load one image and cast it to np.array"""
         img = PIL.Image.open(filename)
-
-        # transform to uint8 (RGB 0-255) for image augmentation
-        img:np.ndarray = np.asarray(img, dtype=np.uint8) 
-
+        img = np.asarray(img, dtype=np.uint8) 
         return img
 
     @staticmethod
-    def load_waggle_images(waggle_path) -> List[np.ndarray]:
-        """load images from one directory (= 1 video)"""
-        images: List[np.ndarray] = []
+    def load_waggle_images(waggle_path):
+        """Load images for one video"""
+        images = []
         waggle_dir = waggle_path.parent
         zip_file_path = os.path.join(waggle_dir, "images.zip")
         assert os.path.exists(zip_file_path) 
@@ -101,9 +76,7 @@ class WDDDataset(Dataset):
         waggle_vector = np.array([np.cos(waggle_angle), np.sin(waggle_angle)], dtype=np.float32)
         return waggle_vector, waggle_duration
 
-
-    #============= IMAGE AUGMENTATION
-    def augment_video(self, video:List[np.ndarray], augments) -> Dict[str, np.ndarray]:
+    def augment_video(self, video, augments):
         """initializes self.augmenter by defining different augmentations"""
 
         """aug_resize - augmenter for resizing images (downsampling)"""
@@ -119,14 +92,13 @@ class WDDDataset(Dataset):
         aug_normalize = None  
 
         transforms = []
-       
+
         if "resize" in augments:
-            # AUGMENTER
             aug_resize =  A.Compose([
                 A.Resize(
                     p=1,
-                    width   = cfg.IMG_W, 
-                    height  = cfg.IMG_H
+                    width   = config.img_w,
+                    height  = config.img_h,
                 )
             ])
             transforms.append(aug_resize)
@@ -143,19 +115,19 @@ class WDDDataset(Dataset):
                 # 
                 # `arg elementwise=True` 
                 #   True --> each pixel p uses different factor v to create p'=p*v 
-                A.MultiplicativeNoise(p=0.5, multiplier=(0.75, 1.25), elementwise=True),
+                A.MultiplicativeNoise(p=0.3, multiplier=(0.75, 1.25), elementwise=True),
 
                 # A.GaussNoise() --- produces noisy image
                 #
                 # `arg var_limit(a, b)`
                 #   defines range for variance (randomly sampled), where a is min and b is max
-                A.GaussNoise(p=0.25, var_limit=(0, 10)),
+                A.GaussNoise(p=0.4, var_limit=(0, 10)),
 
                 # A.GaussianBlur() --- produces blurry image
                 #
                 # `arg sigma_limit(a, b)`
                 #   defines range for blur, where a is min and b is max
-                A.GaussianBlur(p=0.55, sigma_limit=(0.0, 0.75), always_apply=True),
+                A.GaussianBlur(p=0.3, sigma_limit=(0.0, 0.75), always_apply=True),
 
                 # A.RandomBrightnessContrast() --- affects brightness (light/dark) and contrast
                 #
@@ -200,13 +172,11 @@ class WDDDataset(Dataset):
         
         if "normalize" in augments:
             aug_normalize = A.Normalize(
-                # normalize to [-1,1]
                 p=1,
-                mean=cfg.IMG_MEAN, std=cfg.IMG_STD, max_pixel_value=255
+                mean=config.img_mean, std=config.img_std, max_pixel_value=255
             )
             transforms.append(aug_normalize)
 
-        # AUGMENTER INIT
         dictoINIT =  {} 
         dictoCALL = {}
         for i in range(1,len(video)):
@@ -214,10 +184,9 @@ class WDDDataset(Dataset):
             dictoCALL[f'image{i}'] = video[i]
 
         augmenter = A.Compose(transforms=transforms, additional_targets=dictoINIT)
-
-        # AUGMENTER CALL
         aug_video = augmenter(image=video[0], **dictoCALL)
-        return aug_video
+
+        return aug_video.values()
 
 
 class WDDSampler():
@@ -247,3 +216,15 @@ class WDDSampler():
                 batch.append(idx_list.pop())
             batch_list.append(batch)
         return iter(batch_list)
+
+
+def custom_collate(data):
+    """ Return custom batch tensors.
+    Pad videos to longest video length in a batch and save original video lengths.
+    Build batch tensor for padded videos, video lengths and labels
+    """
+    video_lens = torch.tensor([video.shape[0] for video, _ in data])
+    video = [torch.tensor(video) for video, _ in data]
+    video = pad_sequence(video, batch_first=True)
+    label = torch.tensor([torch.tensor(label) for _, label in data])
+    return video, video_lens, label

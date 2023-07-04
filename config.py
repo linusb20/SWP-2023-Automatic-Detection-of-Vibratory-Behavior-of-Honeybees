@@ -2,32 +2,26 @@ import os
 import datetime
 import torch
 
-# PATH_PICKLE = os.path.join(os.path.dirname(__file__), "wdd_ground_truth", "ground_truth_wdd_angles.pickle")
-# PATH_IMAGES = os.path.join(os.path.dirname(__file__), "wdd_ground_truth", "wdd_ground_truth")
+# path_pickle = os.path.join(os.path.dirname(__file__), "wdd_ground_truth", "ground_truth_wdd_angles.pickle")
+# path_images = os.path.join(os.path.dirname(__file__), "wdd_ground_truth", "wdd_ground_truth")
 
-PATH_PICKLE = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth", "ground_truth_wdd_angles.pickle")
-PATH_IMAGES = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth")
+path_pickle = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth", "ground_truth_wdd_angles.pickle")
+path_images = os.path.join(os.sep, "srv", "data", "joeh97", "data", "wdd_ground_truth")
 
-PATH_CHECKPOINT_DIR = os.path.join(os.getcwd(), "checkpoints")
-PATH_CHECKPOINT_RESTORE = None
+path_checkpoints = os.path.join(os.getcwd(), "checkpoints")
+path_stats = os.path.join(os.getcwd(), "resources", "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+seed = 1234
 
-IMG_W = 110
-IMG_H = 110
-IMG_MEAN = 0.5
-IMG_STD = 0.5
+img_w = 110
+img_h = 110
+img_mean = 0.5
+img_std = 0.5
 
-BATCH_SIZE = 16
-NUM_WORKERS = 4
-NUM_EPOCHS = 64
+batch_size = 16
+num_workers = 4
+num_epochs = 64
 
-LOG_INTERVAL = 5
-SAVE_INTERVAL = 5
-
-STATS_PATH = os.path.join(os.getcwd(), "stats_" + datetime.datetime.now().strftime("%Y%m%dT%H%M"))
-SAVE_PATH_ACCURACY = os.path.join(STATS_PATH, "accuracy.pdf")
-SAVE_PATH_LOSS = os.path.join(STATS_PATH, "loss.pdf")
-SAVE_PATH_CONFUSION = os.path.join(STATS_PATH, "confusion.pdf")
-SAVE_PATH_JSON = os.path.join(STATS_PATH, "stats.json")
-SAVE_PATH_MODEL_SUMMARY = os.path.join(STATS_PATH, "model.txt")
+log_interval = 5
+save_interval = 5
