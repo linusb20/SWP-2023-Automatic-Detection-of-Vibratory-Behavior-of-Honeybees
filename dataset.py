@@ -26,6 +26,7 @@ class WDDDataset(Dataset):
         self.class_bins = [[] for _ in range(len(self.all_labels))]
         for i, y in enumerate(self.Y):
             self.class_bins[y].append(i)
+        self.augment_p = None
 
     def __len__(self):
         return len(self.meta_data_paths)
@@ -40,7 +41,7 @@ class WDDDataset(Dataset):
         if self.augment:
             augments.extend(["shape", "quality"])
 
-        video = self.augment_video(video, augments=augments)
+        video = self.augment_video(video, augments=augments, p=self.augment_p)
         video = [img.astype(np.float32) for img in video]
         video = np.expand_dims(video, axis=1)
 
@@ -76,7 +77,7 @@ class WDDDataset(Dataset):
         waggle_vector = np.array([np.cos(waggle_angle), np.sin(waggle_angle)], dtype=np.float32)
         return waggle_vector, waggle_duration
 
-    def augment_video(self, video, augments):
+    def augment_video(self, video, augments, p):
         """initializes self.augmenter by defining different augmentations"""
 
         """aug_resize - augmenter for resizing images (downsampling)"""
@@ -90,6 +91,8 @@ class WDDDataset(Dataset):
 
         """aug_shape - augmenter for normalizing pixel range"""
         aug_normalize = None  
+
+        p = p or 1
 
         transforms = []
 
@@ -115,19 +118,19 @@ class WDDDataset(Dataset):
                 # 
                 # `arg elementwise=True` 
                 #   True --> each pixel p uses different factor v to create p'=p*v 
-                A.MultiplicativeNoise(p=0.3, multiplier=(0.75, 1.25), elementwise=True),
+                A.MultiplicativeNoise(p=0.3*p, multiplier=(0.75, 1.25), elementwise=True),
 
                 # A.GaussNoise() --- produces noisy image
                 #
                 # `arg var_limit(a, b)`
                 #   defines range for variance (randomly sampled), where a is min and b is max
-                A.GaussNoise(p=0.4, var_limit=(0, 10)),
+                A.GaussNoise(p=0.4*p, var_limit=(0, 10)),
 
                 # A.GaussianBlur() --- produces blurry image
                 #
                 # `arg sigma_limit(a, b)`
                 #   defines range for blur, where a is min and b is max
-                A.GaussianBlur(p=0.3, sigma_limit=(0.0, 0.75), always_apply=True),
+                A.GaussianBlur(p=0.3*p, sigma_limit=(0.0, 0.75), always_apply=True),
 
                 # A.RandomBrightnessContrast() --- affects brightness (light/dark) and contrast
                 #
@@ -136,9 +139,9 @@ class WDDDataset(Dataset):
                 #
                 # `arg contrast_limit(a, b)`
                 #   defines range for contrast_limit, where a is min and b is max
-                A.RandomBrightnessContrast(p=0.6, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
+                A.RandomBrightnessContrast(p=0.6*p, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
 
-                A.RandomGamma(p=0.5),
+                A.RandomGamma(p=0.5*p),
             ])
             transforms.append(aug_quality)
 
@@ -147,9 +150,9 @@ class WDDDataset(Dataset):
                 A.OneOf([
                     A.HorizontalFlip(), 
                     A.VerticalFlip()
-                ], p=0.8),
+                ], p=0.8*p),
 
-                A.RandomRotate90(p=0.5),
+                A.RandomRotate90(p=0.5*p),
 
                 #  A.Affine() --- rotation, zoom, shift
                 #
@@ -162,7 +165,7 @@ class WDDDataset(Dataset):
                 # `arg scale(dict)`
                 #   zooms on different axis
                 A.Affine(
-                    p=0.5,
+                    p=0.5*p,
                     translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)},
                     shear=(-5, 5),
                     scale={"x": (0.9,1.1), "y": (0.9,1.1)},

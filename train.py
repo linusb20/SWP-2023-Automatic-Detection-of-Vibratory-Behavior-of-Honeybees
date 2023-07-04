@@ -128,6 +128,7 @@ def train_loop(
     start_epoch = ckpt["epoch"] + 1 if "epoch" in ckpt else 0
 
     for epoch in range(start_epoch, num_epochs):
+        train_dataset.augment_p = min(0.4 + np.log1p((epoch * 2) / max(num_epochs - 1, 1)), 1)
         train_loss_mean, train_loss_std, train_acc = train(model, train_dataloader, optimizer, epoch, log_interval, device)
         test_loss_mean, test_loss_std, test_acc = eval(model, test_dataloader, device)
 
