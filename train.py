@@ -102,6 +102,7 @@ def train_loop(
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
 
+    os.makedirs(path_checkpoints, exist_ok=True)
     path_checkpoint = os.path.join(patch_checkpoints, checkpoint_pth) if checkpoint_pth else None
 
     ckpt = {}
@@ -168,6 +169,7 @@ def train_loop(
         print(f"ventilating_precision: {ventilating_precision:.3f}, ventilating_recall: {ventilating_recall:.3f}, ventilating_fscore: {ventilating_fscore:.3f}")
         print(f"activating_precision: {activating_precision:.3f}, activating_recall: {activating_recall:.3f}, activating_fscore: {activating_fscore:.3f}")
 
+    os.makedirs(path_stats, exist_ok=True)
     plot_accuracy(stats["train_acc_list"], stats["test_acc_list"], os.path.join(path_stats, "accuracy.jpg"))
     plot_loss(stats["train_loss_mean_list"], stats["train_loss_std_list"], os.path.join(path_stats, "train_loss.jpg"))
     plot_loss(stats["test_loss_mean_list"], stats["test_loss_std_list"], os.path.join(path_stats, "test_loss.jpg"))
@@ -206,8 +208,6 @@ def main(
         return head.joinpath(tail)
     gt_items = [tuple(item) + (remap(path),) for *item, path, in gt_items]
 
-    os.makedirs(path_checkpoints, exist_ok=True)
-    os.makedirs(path_stats, exist_ok=True)
 
     all_indices = np.arange(len(gt_items))
     np.random.shuffle(all_indices)
