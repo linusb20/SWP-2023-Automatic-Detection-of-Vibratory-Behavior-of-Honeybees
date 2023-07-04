@@ -153,6 +153,42 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 [Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/4e0b5ba87022820b94f0fe583fee63be4e2fbc3c)
 
+---
+
+<table>
+      <tr><td><b>Model</b></td><td>C3D (2 x [Conv3d + BN + Mish + MaxPool] + 2 x [Conv3d + BN + Mish] + MaxPool) + GRU (2 x 256)</td></tr>
+      <tr></tr>
+      <tr><td><b>Optimizer</b></td><td>Adam, LR=1e-5</td></tr>
+      <tr></tr>
+      <tr><td><b>Criterion</b></td><td>Cross Entropy</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Size</b></td><td>16</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Sampler</b></td><td>Oversampling of minority classes for equal class distribution</td></tr>
+      <tr></tr>
+      <tr><td><b>Epochs</b></td><td>130</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Augmentation</b></td><td>Sequence of [Multiplicative Noise (p=0.4), GaussianNoise (p=0.5), GaussianBlur (p=0.4), RandomBrightnessContrast (p=0.7), RandomGamma (p=0.6)] + Sequence of [One of [HorizontalFlip, VerticalFlip] (p=0.8), RandomRotate90 (p=0.6), Affine (Translation, Shear, Scale) (p=0.6)] where each p is multiplied with a factor that grows during training from 0.5 to 1</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Size</b></td><td>64 x 64</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Normalization</b></td><td>Mean=0.5, Std=0.5, (Range=[-1,1]) 
+      <tr></tr>
+      <tr><td><b>Input Format</b></td><td>16 x 1 x L x 64 x 64 (Pad to longest video in batch)</td></tr>
+      <tr></tr>
+      <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
+</table>
+
+![Accuracy](resources/stats_20230704T1440/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230704T1440/confusion.jpg)
+
+**Comments**
+
+-   Instead of generating embeddings for single images in a video we divide the video into video clips of length 8 and generate embeddings for the video clips using 3d convolutions. The video clip embeddings are then fed into a GRU and one linear layer to create class probabilities.
+-   The results look promising. The testing accuracy is very jittery though which is probably still due to overfitting. A solution might be to augment the videos even more.
+
+[Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/d94c0f67d699e6d891e898c82b1e06b447b471d2)
+
 ## TODO
 
 -   [x] image augmenation (blur, contrast, crop, translation, stretching, padding)
