@@ -96,16 +96,6 @@ class WDDDataset(Dataset):
 
         transforms = []
 
-        if "resize" in augments:
-            aug_resize =  A.Compose([
-                A.Resize(
-                    p=1,
-                    width   = config.img_w,
-                    height  = config.img_h,
-                )
-            ])
-            transforms.append(aug_resize)
-
         if "quality" in augments:
             aug_quality = A.Compose([
                 # A.MultiplicativeNoise() --- produces lighter/darker image
@@ -118,19 +108,19 @@ class WDDDataset(Dataset):
                 # 
                 # `arg elementwise=True` 
                 #   True --> each pixel p uses different factor v to create p'=p*v 
-                A.MultiplicativeNoise(p=0.3*p, multiplier=(0.75, 1.25), elementwise=True),
+                A.MultiplicativeNoise(p=0.4*p, multiplier=(0.75, 1.25), elementwise=True),
 
                 # A.GaussNoise() --- produces noisy image
                 #
                 # `arg var_limit(a, b)`
                 #   defines range for variance (randomly sampled), where a is min and b is max
-                A.GaussNoise(p=0.4*p, var_limit=(0, 10)),
+                A.GaussNoise(p=0.5*p, var_limit=(0, 10)),
 
                 # A.GaussianBlur() --- produces blurry image
                 #
                 # `arg sigma_limit(a, b)`
                 #   defines range for blur, where a is min and b is max
-                A.GaussianBlur(p=0.3*p, sigma_limit=(0.0, 0.75), always_apply=True),
+                A.GaussianBlur(p=0.4*p, sigma_limit=(0.0, 0.75), always_apply=True),
 
                 # A.RandomBrightnessContrast() --- affects brightness (light/dark) and contrast
                 #
@@ -139,9 +129,9 @@ class WDDDataset(Dataset):
                 #
                 # `arg contrast_limit(a, b)`
                 #   defines range for contrast_limit, where a is min and b is max
-                A.RandomBrightnessContrast(p=0.6*p, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
+                A.RandomBrightnessContrast(p=0.7*p, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
 
-                A.RandomGamma(p=0.5*p),
+                A.RandomGamma(p=0.6*p),
             ])
             transforms.append(aug_quality)
 
@@ -152,7 +142,7 @@ class WDDDataset(Dataset):
                     A.VerticalFlip()
                 ], p=0.8*p),
 
-                A.RandomRotate90(p=0.5*p),
+                A.RandomRotate90(p=0.6*p),
 
                 #  A.Affine() --- rotation, zoom, shift
                 #
@@ -165,13 +155,23 @@ class WDDDataset(Dataset):
                 # `arg scale(dict)`
                 #   zooms on different axis
                 A.Affine(
-                    p=0.5*p,
+                    p=0.6*p,
                     translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)},
                     shear=(-5, 5),
                     scale={"x": (0.9,1.1), "y": (0.9,1.1)},
                 ),
             ])
             transforms.append(aug_shape)
+
+        if "resize" in augments:
+            aug_resize =  A.Compose([
+                A.Resize(
+                    p=1,
+                    width   = config.img_w,
+                    height  = config.img_h,
+                )
+            ])
+            transforms.append(aug_resize)
         
         if "normalize" in augments:
             aug_normalize = A.Normalize(
@@ -203,6 +203,7 @@ class WDDSampler():
     def __init__(self, class_bins, batch_size):
         self.batch_size = batch_size
         self.class_bins = class_bins
+        self.len = None
 
     def __iter__(self):
         class_bins = copy.deepcopy(self.class_bins)
@@ -218,7 +219,11 @@ class WDDSampler():
             for _ in range(self.batch_size):
                 batch.append(idx_list.pop())
             batch_list.append(batch)
+        self.len = len(batch_list)
         return iter(batch_list)
+
+    def __len__(self):
+        return self.len
 
 
 def custom_collate(data):
@@ -226,8 +231,8 @@ def custom_collate(data):
     Pad videos to longest video length in a batch and save original video lengths.
     Build batch tensor for padded videos, video lengths and labels
     """
-    video_lens = torch.tensor([video.shape[0] for video, _ in data])
     video = [torch.tensor(video) for video, _ in data]
     video = pad_sequence(video, batch_first=True)
+    video = video.permute(0, 2, 1, 3, 4)
     label = torch.tensor([torch.tensor(label) for _, label in data])
-    return video, video_lens, label
+    return video, label

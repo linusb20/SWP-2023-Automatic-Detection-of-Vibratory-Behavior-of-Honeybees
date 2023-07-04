@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score
 
 import config
 from dataset import WDDDataset, WDDSampler, custom_collate
-from model import CNNEncoder, RNNDecoder
+from model import C3D_RNN
 from evaluation import compute_metrics
 from plotting import plot_accuracy, plot_loss, plot_confusion_matrix, playback
 
@@ -23,11 +23,11 @@ def train(model, dataloader, optimizer, epoch, log_interval, device):
     loss_list = []
     predicted_list, actual_list = [], []
 
-    for batch_idx, (video, video_lens, label) in enumerate(dataloader):
+    for batch_idx, (video, label) in enumerate(dataloader):
         video = video.to(device)
         label = label.to(device)
 
-        logits = model((video, video_lens))
+        logits = model(video)
         loss = F.cross_entropy(logits, label)
         optimizer.zero_grad()
 
@@ -56,11 +56,11 @@ def eval(model, dataloader, device):
     predicted_list, actual_list = [], []
 
     with torch.no_grad():
-        for batch_idx, (video, video_lens, label) in enumerate(dataloader):
+        for batch_idx, (video, label) in enumerate(dataloader):
             video = video.to(device)
             label = label.to(device)
 
-            logits = model((video, video_lens))
+            logits = model(video)
             loss = F.cross_entropy(logits, label)
 
             _, predicted = torch.max(logits, 1)
@@ -94,10 +94,7 @@ def train_loop(
     test_dataset = WDDDataset(gt_test_items, augment=False)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
 
-    model = torch.nn.Sequential(
-        CNNEncoder(), 
-        RNNDecoder(),
-    )
+    model = C3D_RNN()
     model = model.to(device)
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
@@ -129,7 +126,7 @@ def train_loop(
     start_epoch = ckpt["epoch"] + 1 if "epoch" in ckpt else 0
 
     for epoch in range(start_epoch, num_epochs):
-        train_dataset.augment_p = min(0.4 + np.log1p((epoch * 2) / max(num_epochs - 1, 1)), 1)
+        train_dataset.augment_p = min(0.5 + np.log1p((epoch * 2) / max(num_epochs - 1, 1)), 1)
         train_loss_mean, train_loss_std, train_acc = train(model, train_dataloader, optimizer, epoch, log_interval, device)
         test_loss_mean, test_loss_std, test_acc = eval(model, test_dataloader, device)
 
@@ -148,7 +145,7 @@ def train_loop(
         print(f"Testing Loss Std: {test_loss_std:.2f}")
 
         if epoch % save_interval == 0:
-            save_path = os.path.join(path_checkpoints, f"epoch-{epoch:03}.pth")
+            save_path = os.path.join(path_checkpoints, "save.pth")
             torch.save({
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),

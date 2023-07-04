@@ -14,14 +14,14 @@ path_stats = os.path.join(os.getcwd(), "resources", "stats_" + datetime.datetime
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 seed = 1234
 
-img_w = 110
-img_h = 110
+img_w = 64
+img_h = 64
 img_mean = 0.5
 img_std = 0.5
 
 batch_size = 16
 num_workers = 4
-num_epochs = 64
+num_epochs = 130
 
 log_interval = 5
-save_interval = 5
+save_interval = 10
