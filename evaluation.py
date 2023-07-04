@@ -4,10 +4,10 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 @torch.no_grad()
 def compute_predicted_actual(model, dataloader, device):
     predicted_list, actual_list = [], []
-    for video, video_lens, label in dataloader:
+    for video, label in dataloader:
         video = video.to(device)
         label = label.to(device)
-        logits = model((video, video_lens))
+        logits = model(video)
         _, predicted = torch.max(logits, 1)
         predicted_list.extend(predicted.cpu().numpy().tolist())
         actual_list.extend(label.cpu().numpy().tolist())
