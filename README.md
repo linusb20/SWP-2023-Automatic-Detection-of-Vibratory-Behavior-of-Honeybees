@@ -32,8 +32,8 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
 </table>
 
-![Accuracy](stats_20230602T2153/accuracy.jpg)
-![Confusion Matrix](stats_20230602T2153/confusion.jpg)
+![Accuracy](resources/stats_20230602T2153/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230602T2153/confusion.jpg)
 
 **Comments**:
 
@@ -69,8 +69,8 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr><td><b>Output Format</b></td><td>8 x 4</td></tr>
 </table>
 
-![Accuracy](stats_20230628T2053/accuracy.jpg)
-![Confusion Matrix](stats_20230628T2053/confusion.jpg)
+![Accuracy](resources/stats_20230628T2053/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230628T2053/confusion.jpg)
 
 **Comments**:
 
@@ -106,8 +106,8 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
 </table>
 
-![Accuracy](stats_20230629T1351/accuracy.jpg)
-![Confusion Matrix](stats_20230629T1351/confusion.jpg)
+![Accuracy](resources/stats_20230629T1351/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230629T1351/confusion.jpg)
 
 **Comments**
 
@@ -142,8 +142,8 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
 </table>
 
-![Accuracy](stats_20230701T1503/accuracy.jpg)
-![Confusion Matrix](stats_20230701T1503/confusion.jpg)
+![Accuracy](resources/stats_20230701T1503/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230701T1503/confusion.jpg)
 
 **Comments**
 
