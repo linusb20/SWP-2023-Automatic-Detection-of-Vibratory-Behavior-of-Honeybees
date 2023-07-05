@@ -185,7 +185,7 @@ mean loss at each epoch and confusion matrix from the trained model.
 **Comments**
 
 -   Instead of generating embeddings for single images in a video we divide the video into video clips of length 8 and generate embeddings for the video clips using 3d convolutions. The video clip embeddings are then fed into a GRU and one linear layer to create class probabilities.
--   The results look promising. The testing accuracy is very jittery though which is probably still due to overfitting. A solution might be to augment the videos even more.
+-   The results look promising. The testing accuracy is very jittery though which might be due to learning rate or optimization issues. Also the testing dataset used contains many examples of the "other" class with ambiguous bee behavior which could confuse the model.
 
 [Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/d94c0f67d699e6d891e898c82b1e06b447b471d2)
 
