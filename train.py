@@ -125,6 +125,8 @@ def train_loop(
 
     start_epoch = ckpt["epoch"] + 1 if "epoch" in ckpt else 0
 
+    test_acc_thresh = 70  # if testing accuracy exceeds this threshold save the model and update threshold
+
     for epoch in range(start_epoch, num_epochs):
         train_dataset.augment_p = min(0.5 + np.log1p((epoch * 2) / max(num_epochs - 1, 1)), 1)
         train_loss_mean, train_loss_std, train_acc = train(model, train_dataloader, optimizer, epoch, log_interval, device)
@@ -144,15 +146,13 @@ def train_loop(
         print(f"Testing Loss Mean: {test_loss_mean:.2f}")
         print(f"Testing Loss Std: {test_loss_std:.2f}")
 
-        if epoch % save_interval == 0:
-            save_path = os.path.join(path_checkpoints, "save.pth")
-            torch.save({
-                "epoch": epoch,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "stats": stats,
-            }, save_path)
-            print(f"Saved model in epoch {epoch} to {save_path}")
+        if test_acc > test_acc_thresh:
+            save_path = os.path.join(path_checkpoints, "save_best.pth")
+            save_model(model, optimizer, epoch, stats, save_path)
+            test_acc_thresh = test_acc
+        elif (epoch + 1) % save_interval == 0:
+            save_path = os.path.join(path_checkpoints, "save_last.pth")
+            save_model(model, optimizer, epoch, stats, save_path)
 
     model.eval()
     with torch.no_grad():
@@ -176,6 +176,14 @@ def train_loop(
     with open(os.path.join(path_stats, "model.txt"), "w") as f:
         print(model, file=f)
 
+def save_model(model, optimizer, epoch, stats, save_path):
+    torch.save({
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "stats": stats,
+    }, save_path)
+    print(f"Saved model in epoch {epoch+1} to {save_path}")
 
 def main(
     path_pickle, 
