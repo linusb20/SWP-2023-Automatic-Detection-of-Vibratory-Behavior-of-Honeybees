@@ -6,25 +6,25 @@ class C3D(torch.nn.Module):
 
         self.cnn = torch.nn.Sequential(
             torch.nn.Conv3d(1, 64, kernel_size=(3, 3, 3), padding=(1, 1, 1)),
-            torch.nn.BatchNorm3d(64),
+            torch.nn.LayerNorm([64, 8, 64, 64]),
             torch.nn.Mish(inplace=True),
             torch.nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2)),
             torch.nn.Conv3d(64, 128, kernel_size=(3, 3, 3), padding=(1, 1, 1)),
-            torch.nn.BatchNorm3d(128),
+            torch.nn.LayerNorm([128, 8, 32, 32]),
             torch.nn.Mish(inplace=True),
             torch.nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2)),
             torch.nn.Conv3d(128, 256, kernel_size=(3, 3, 3), padding=(1, 1, 1)),
-            torch.nn.BatchNorm3d(256),
+            torch.nn.LayerNorm([256, 4, 16, 16]),
             torch.nn.Mish(inplace=True),
             torch.nn.Conv3d(256, 256, kernel_size=(3, 3, 3), padding=(1, 1, 1)),
-            torch.nn.BatchNorm3d(256),
+            torch.nn.LayerNorm([256, 4, 16, 16]),
             torch.nn.Mish(inplace=True),
             torch.nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2))
         )
 
         self.fc = torch.nn.Sequential(
             torch.nn.Linear(256 * 2 * 8 * 8, 512), # assume 8 x 64 x 64
-            torch.nn.BatchNorm1d(512),
+            torch.nn.LayerNorm(512),
             torch.nn.Mish(inplace=True),
             torch.nn.Dropout(0.5),
             torch.nn.Linear(512, 256),
