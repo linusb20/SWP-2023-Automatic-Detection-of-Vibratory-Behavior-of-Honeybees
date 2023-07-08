@@ -92,7 +92,7 @@ def train_loop(
     train_dataloader = DataLoader(train_dataset, batch_sampler=train_sampler, num_workers=num_workers, collate_fn=custom_collate)
 
     test_dataset = WDDDataset(gt_test_items, augment=False)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, collate_fn=custom_collate)
 
     model = C3D_RNN()
     model = model.to(device)
