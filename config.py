@@ -21,7 +21,7 @@ img_std = 0.5
 
 batch_size = 16
 num_workers = 4
-num_epochs = 130
+num_epochs = 140
 
 log_interval = 5
 save_interval = 10
