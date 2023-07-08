@@ -219,6 +219,7 @@ def main(
     n = int(0.85 * len(all_indices)) # 85/15 train/test split
     train_indices = all_indices[:n]
     test_indices = all_indices[n:]
+    assert np.intersect1d(train_indices, test_indices).size == 0
      
     print(f"Found {len(test_indices)} test examples")
     print(f"Found {len(train_indices)} training examples")
