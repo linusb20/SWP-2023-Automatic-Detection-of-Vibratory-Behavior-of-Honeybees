@@ -167,10 +167,10 @@ def train_loop(
         print(f"activating_precision: {activating_precision:.3f}, activating_recall: {activating_recall:.3f}, activating_fscore: {activating_fscore:.3f}")
 
     os.makedirs(path_stats, exist_ok=True)
-    plot_accuracy(stats["train_acc_list"], stats["test_acc_list"], os.path.join(path_stats, "accuracy.jpg"))
-    plot_loss(stats["train_loss_mean_list"], stats["train_loss_std_list"], os.path.join(path_stats, "train_loss.jpg"))
-    plot_loss(stats["test_loss_mean_list"], stats["test_loss_std_list"], os.path.join(path_stats, "test_loss.jpg"))
-    plot_confusion_matrix(cm, test_dataset.all_labels, os.path.join(path_stats, "confusion.jpg"))
+    plot_accuracy(stats["train_acc_list"], stats["test_acc_list"], os.path.join(path_stats, "accuracy.pdf"))
+    plot_loss(stats["train_loss_mean_list"], stats["train_loss_std_list"], os.path.join(path_stats, "train_loss.pdf"))
+    plot_loss(stats["test_loss_mean_list"], stats["test_loss_std_list"], os.path.join(path_stats, "test_loss.pdf"))
+    plot_confusion_matrix(cm, test_dataset.all_labels, os.path.join(path_stats, "confusion.pdf"))
     with open(os.path.join(path_stats, "stats.json"), "w") as f:
         json.dump(stats, f)
     with open(os.path.join(path_stats, "model.txt"), "w") as f:
