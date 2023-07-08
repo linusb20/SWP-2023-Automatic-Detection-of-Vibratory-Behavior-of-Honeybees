@@ -37,11 +37,12 @@ class WDDDataset(Dataset):
         video = WDDDataset.load_waggle_images(self.meta_data_paths[i]) # min video length is 95
         label = self.Y[i]
 
-        augments = ["resize", "normalize"]
+        augments = ["resize", "normalize", "crop"]
         if self.augment:
             augments.extend(["shape", "quality"])
-
-        video = self.augment_video(video, augments=augments, p=self.augment_p)
+        
+        crop_perc = (-0.25, -0.10) if self.augment else -0.15
+        video = self.augment_video(video, augments=augments, crop_perc=crop_perc, p=self.augment_p)
         video = [img.astype(np.float32) for img in video]
         video = np.expand_dims(video, axis=1)
 
@@ -77,7 +78,7 @@ class WDDDataset(Dataset):
         waggle_vector = np.array([np.cos(waggle_angle), np.sin(waggle_angle)], dtype=np.float32)
         return waggle_vector, waggle_duration
 
-    def augment_video(self, video, augments, p):
+    def augment_video(self, video, augments, crop_perc, p):
         """initializes self.augmenter by defining different augmentations"""
 
         """aug_resize - augmenter for resizing images (downsampling)"""
@@ -98,6 +99,7 @@ class WDDDataset(Dataset):
 
         if "quality" in augments:
             aug_quality = A.Compose([
+                A.RandomGamma(p=0.55*p, gamma_limit=(90, 110)),
                 # A.MultiplicativeNoise() --- produces lighter/darker image
                 #
                 # `arg multiplier(a,b)`
@@ -108,19 +110,20 @@ class WDDDataset(Dataset):
                 # 
                 # `arg elementwise=True` 
                 #   True --> each pixel p uses different factor v to create p'=p*v 
-                A.MultiplicativeNoise(p=0.4*p, multiplier=(0.75, 1.25), elementwise=True),
+                A.MultiplicativeNoise(p=4*p, multiplier=(0.9,1.1), elementwise=True),
+                A.PixelDropout(p=0.5*p, dropout_prob=0.01),
 
                 # A.GaussNoise() --- produces noisy image
                 #
                 # `arg var_limit(a, b)`
                 #   defines range for variance (randomly sampled), where a is min and b is max
-                A.GaussNoise(p=0.5*p, var_limit=(0, 10)),
+                A.GaussNoise(p=0.6*p, var_limit=(0, 10)),
 
                 # A.GaussianBlur() --- produces blurry image
                 #
                 # `arg sigma_limit(a, b)`
                 #   defines range for blur, where a is min and b is max
-                A.GaussianBlur(p=0.4*p, sigma_limit=(0.0, 0.75), always_apply=True),
+                A.GaussianBlur(p=0.5*p, sigma_limit=(0.0, 0.75)),
 
                 # A.RandomBrightnessContrast() --- affects brightness (light/dark) and contrast
                 #
@@ -129,9 +132,8 @@ class WDDDataset(Dataset):
                 #
                 # `arg contrast_limit(a, b)`
                 #   defines range for contrast_limit, where a is min and b is max
-                A.RandomBrightnessContrast(p=0.7*p, brightness_limit=(-0.1, 0.5), contrast_limit=(-0.5, 0.5)),
+                A.RandomBrightnessContrast(p=0.5*p, brightness_limit=(-0.1, 0.1), contrast_limit=(-0.1, 0.1)),
 
-                A.RandomGamma(p=0.6*p),
             ])
             transforms.append(aug_quality)
 
@@ -140,9 +142,9 @@ class WDDDataset(Dataset):
                 A.OneOf([
                     A.HorizontalFlip(), 
                     A.VerticalFlip()
-                ], p=0.8*p),
+                ], p=1),
 
-                A.RandomRotate90(p=0.6*p),
+                A.RandomRotate90(p=1),
 
                 #  A.Affine() --- rotation, zoom, shift
                 #
@@ -155,13 +157,17 @@ class WDDDataset(Dataset):
                 # `arg scale(dict)`
                 #   zooms on different axis
                 A.Affine(
-                    p=0.6*p,
+                    p=1,
                     translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)},
                     shear=(-5, 5),
-                    scale={"x": (0.9,1.1), "y": (0.9,1.1)},
+                    scale={"x": (0.8,1.2), "y": (0.8,1.2)},
                 ),
             ])
             transforms.append(aug_shape)
+
+        if "crop" in augments:
+            aug_crop = A.CropAndPad(percent=crop_perc, keep_size=True)
+            transforms.append(aug_crop)
 
         if "resize" in augments:
             aug_resize =  A.Compose([
@@ -228,8 +234,8 @@ class WDDSampler():
 
 def custom_collate(data):
     """ Return custom batch tensors.
-    Pad videos to longest video length in a batch and save original video lengths.
-    Build batch tensor for padded videos, video lengths and labels
+    Pad videos to longest video length in a batch and swap time and channel dimensions.
+    Build batch tensor for padded videos and labels
     """
     video = [torch.tensor(video) for video, _ in data]
     video = pad_sequence(video, batch_first=True)
