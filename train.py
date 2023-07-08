@@ -39,8 +39,8 @@ def train(model, dataloader, optimizer, epoch, log_interval, device):
         actual_list.extend(label.cpu().numpy().tolist())
         loss_list.append(loss.item())
 
-        if batch_idx % log_interval == 0:
-            print(f"[Epoch {epoch:3}] Batch {batch_idx:3} of {len(dataloader):3}")
+        if (batch_idx + 1) % log_interval == 0:
+            print(f"[Epoch {epoch+1:3}] Batch {batch_idx+1:3} of {len(dataloader):3}")
             print(f"Loss: {loss:.4f}")
     
     loss_mean = np.mean(loss_list)
