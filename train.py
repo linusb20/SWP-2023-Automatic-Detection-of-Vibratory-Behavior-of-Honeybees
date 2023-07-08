@@ -100,7 +100,7 @@ def train_loop(
         model = torch.nn.DataParallel(model)
 
     os.makedirs(path_checkpoints, exist_ok=True)
-    path_checkpoint = os.path.join(patch_checkpoints, checkpoint_pth) if checkpoint_pth else None
+    path_checkpoint = os.path.join(path_checkpoints, checkpoint_pth) if checkpoint_pth else None
 
     ckpt = {}
     if path_checkpoint:
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("--path-checkpoints", type=str, default=config.path_checkpoints)
     parser.add_argument("--path-stats", type=str, default=config.path_stats)
     parser.add_argument("--device", type=str, default=config.device)
-    parser.add_argument("--checkpoint_pth", type=str, default="")
+    parser.add_argument("--checkpoint-pth", type=str, default="")
 
     parser.add_argument("--batch-size", type=int, default=config.batch_size)
     parser.add_argument("--num-epochs", type=int, default=config.num_epochs)
