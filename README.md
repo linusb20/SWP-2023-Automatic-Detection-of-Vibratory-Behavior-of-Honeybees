@@ -189,6 +189,42 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 [Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/d94c0f67d699e6d891e898c82b1e06b447b471d2)
 
+---
+
+<table>
+      <tr><td><b>Model</b></td><td>C3D (2 x [Conv3d + LN + Mish + MaxPool] + 2 x [Conv3d + LN + Mish] + MaxPool) + GRU (2 x 256)</td></tr>
+      <tr></tr>
+      <tr><td><b>Optimizer</b></td><td>Adam, LR=1e-5</td></tr>
+      <tr></tr>
+      <tr><td><b>Criterion</b></td><td>Cross Entropy</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Size</b></td><td>16</td></tr>
+      <tr></tr>
+      <tr><td><b>Batch Sampler</b></td><td>Oversampling of minority classes for equal class distribution</td></tr>
+      <tr></tr>
+      <tr><td><b>Epochs</b></td><td>140</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Augmentation</b></td><td>Sequence of [RandomGamma(p=0.55), Multiplicative Noise (p=0.4), PixelDropout(p=0.5), GaussianNoise (p=0.6), GaussianBlur (p=0.5), RandomBrightnessContrast (p=0.5)] + Sequence of [One of [HorizontalFlip, VerticalFlip], RandomRotate90, Affine (Translation, Shear, Scale)] + RandomCrop where each p is multiplied with a factor that grows during training from 0.5 to 1</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Size</b></td><td>64 x 64</td></tr>
+      <tr></tr>
+      <tr><td><b>Image Normalization</b></td><td>Mean=0.5, Std=0.5, (Range=[-1,1]) 
+      <tr></tr>
+      <tr><td><b>Input Format</b></td><td>16 x 1 x L x 64 x 64 (Pad to longest video in batch)</td></tr>
+      <tr></tr>
+      <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
+</table>
+
+![Accuracy](resources/stats_20230708T1930/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230708T1930/confusion.jpg)
+
+**Comments**
+
+-   The jittery testing accuracy and loss from the previous run seems to have been caused by the batch norm layers. We assume the variable length sequence data and zero padding threw off the batch norm statistics and messed up the running mean and variance during evaluation. We replaced batch norm with layer norm to avoid this issue.
+-   The results look very good. Maybe training the model even further could result in a better testing accuracy altough it seems to start to flatten out.
+
+[Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/1be9cb6721edc6e9e6ae7a9bc62fe4e04e30d71a)
+
 ## TODO
 
 -   [x] image augmenation (blur, contrast, crop, translation, stretching, padding)
