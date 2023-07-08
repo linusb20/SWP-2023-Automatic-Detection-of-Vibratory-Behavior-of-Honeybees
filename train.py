@@ -128,7 +128,7 @@ def train_loop(
     test_acc_thresh = 70  # if testing accuracy exceeds this threshold save the model and update threshold
 
     for epoch in range(start_epoch, num_epochs):
-        train_dataset.augment_p = min(0.5 + np.log1p((epoch * 2) / max(num_epochs - 1, 1)), 1)
+        train_dataset.augment_p = min(0.5 + np.log1p(epoch / 50), 1)
         train_loss_mean, train_loss_std, train_acc = train(model, train_dataloader, optimizer, epoch, log_interval, device)
         test_loss_mean, test_loss_std, test_acc = eval(model, test_dataloader, device)
 
