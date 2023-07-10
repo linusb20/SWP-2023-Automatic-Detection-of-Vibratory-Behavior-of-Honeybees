@@ -215,6 +215,8 @@ mean loss at each epoch and confusion matrix from the trained model.
       <tr><td><b>Output Format</b></td><td>16 x 4</td></tr>
 </table>
 
+**60 FPS**
+
 ![Accuracy](resources/stats_20230708T1930/accuracy.jpg)
 ![Confusion Matrix](resources/stats_20230708T1930/confusion.jpg)
 
@@ -222,6 +224,16 @@ mean loss at each epoch and confusion matrix from the trained model.
 
 -   The jittery testing accuracy and loss from the previous run seems to have been caused by the batch norm layers. We assume the variable length sequence data and zero padding threw off the batch norm statistics and messed up the running mean and variance during evaluation. We replaced batch norm with layer norm to avoid this issue.
 -   The results look very good. Maybe training the model even further could result in a better testing accuracy altough it seems to start to flatten out.
+
+**30 FPS**
+
+![Accuracy](resources/stats_20230710T0900/accuracy.jpg)
+![Confusion Matrix](resources/stats_20230710T0900/confusion.jpg)
+
+**Comments**
+
+-   We train the same model on the videos with every other frame removed (i.e. `images[::2]`) for 300 epochs
+-   The model seems to work just as well. Peak categorical accuracy is roughly 90%.
 
 [Commit](https://github.com/linusb20/SWP-2023-Automatic-Detection-of-Vibratory-Behavior-of-Honeybees/tree/1be9cb6721edc6e9e6ae7a9bc62fe4e04e30d71a)
 

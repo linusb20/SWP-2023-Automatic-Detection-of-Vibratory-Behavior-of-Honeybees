@@ -1,0 +1,34 @@
+DataParallel(
+  (module): C3D_RNN(
+    (c3d): C3D(
+      (cnn): Sequential(
+        (0): Conv3d(1, 64, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1))
+        (1): LayerNorm((64, 8, 64, 64), eps=1e-05, elementwise_affine=True)
+        (2): Mish(inplace=True)
+        (3): MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2), padding=0, dilation=1, ceil_mode=False)
+        (4): Conv3d(64, 128, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1))
+        (5): LayerNorm((128, 8, 32, 32), eps=1e-05, elementwise_affine=True)
+        (6): Mish(inplace=True)
+        (7): MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2), padding=0, dilation=1, ceil_mode=False)
+        (8): Conv3d(128, 256, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1))
+        (9): LayerNorm((256, 4, 16, 16), eps=1e-05, elementwise_affine=True)
+        (10): Mish(inplace=True)
+        (11): Conv3d(256, 256, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1))
+        (12): LayerNorm((256, 4, 16, 16), eps=1e-05, elementwise_affine=True)
+        (13): Mish(inplace=True)
+        (14): MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2), padding=0, dilation=1, ceil_mode=False)
+      )
+      (fc): Sequential(
+        (0): Linear(in_features=32768, out_features=512, bias=True)
+        (1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+        (2): Mish(inplace=True)
+        (3): Dropout(p=0.5, inplace=False)
+        (4): Linear(in_features=512, out_features=256, bias=True)
+      )
+    )
+    (rnn): RNN(
+      (rnn): GRU(256, 256, num_layers=2, batch_first=True, dropout=0.5, bidirectional=True)
+      (fc): Linear(in_features=512, out_features=4, bias=True)
+    )
+  )
+)
