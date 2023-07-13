@@ -91,10 +91,10 @@ class SaveModelCallback(Callback):
 
     def on_epoch_end(self, model, optimizer, epoch, stats, testing_accuracy):
         if testing_accuracy > self.accuracy_threshold:
-            save_path = os.path.join(path_checkpoints, "save_best.pth")
+            save_path = os.path.join(self.path_checkpoints, "save_best.pth")
             SaveModelCallback.save_model(model, optimizer, epoch, stats, save_path)
         elif (epoch + 1) % self.save_interval == 0:
-            save_path = os.path.join(path_checkpoints, "save_last.pth")
+            save_path = os.path.join(self.path_checkpoints, "save_last.pth")
             SaveModelCallback.save_model(model, optimizer, epoch, stats, save_path)
 
     @staticmethod
