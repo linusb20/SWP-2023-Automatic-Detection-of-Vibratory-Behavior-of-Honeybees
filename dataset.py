@@ -14,27 +14,28 @@ from torch.nn.utils.rnn import pad_sequence
 import config
 
 class WDDDataset(Dataset):
-    def __init__(self, gt_items, augment=True):
-        self.augment = augment
-        self.gt_df= pd.DataFrame(gt_items, columns=["waggle_id", "label", "gt_angle", "path"])
-        self.meta_data_paths = self.gt_df.path.values
-        labels = self.gt_df.label.copy()
-        labels[labels == "trembling"] = "other" # merge tembling and other 
+    def __init__(self, gt_items, frame_step_size=2, augment=True):
+        self.paths = [path for path, _ in gt_items]
+        labels = [label for _, label in gt_items]
         self.all_labels = ["other", "waggle", "ventilating", "activating"]
         label_mapper = {s: i for i, s in enumerate(self.all_labels)}
-        self.Y = np.array([label_mapper[l] for l in labels])
+        self.Y = [label_mapper[l] for l in labels]
         self.class_bins = [[] for _ in range(len(self.all_labels))]
         for i, y in enumerate(self.Y):
             self.class_bins[y].append(i)
+
+        self.augment = augment
         self.augment_p = None
+        self.frame_step_size = frame_step_size
 
     def __len__(self):
-        return len(self.meta_data_paths)
+        return len(self.paths)
 
     def __getitem__(self, i):
         """Method called by DataLoader to get one video and its related class label for classification"""
 
-        video = WDDDataset.load_waggle_images(self.meta_data_paths[i]) # min video length is 95
+        video = WDDDataset.load_waggle_images(self.paths[i])
+        video = video[::self.frame_step_size]
         label = self.Y[i]
 
         augments = ["resize", "normalize", "crop"]
@@ -49,18 +50,17 @@ class WDDDataset(Dataset):
         return video, label
 
     @staticmethod
-    def load_image(filename):
+    def load_image(f):
         """Load one image and cast it to np.array"""
-        img = PIL.Image.open(filename)
+        img = PIL.Image.open(f)
         img = np.asarray(img, dtype=np.uint8) 
         return img
 
     @staticmethod
-    def load_waggle_images(waggle_path):
+    def load_waggle_images(path):
         """Load images for one video"""
         images = []
-        waggle_dir = waggle_path.parent
-        zip_file_path = os.path.join(waggle_dir, "images.zip")
+        zip_file_path = os.path.join(path, "images.zip")
         assert os.path.exists(zip_file_path) 
         with zipfile.ZipFile(zip_file_path, "r") as zf:
             image_fns = zf.namelist()
@@ -68,15 +68,6 @@ class WDDDataset(Dataset):
                 with zf.open(fn, "r") as f:
                     images.append(WDDDataset.load_image(f))
         return images
-
-    @staticmethod
-    def load_waggle_metadata(waggle_path):
-        with open(waggle_path, "r") as f:
-            metadata = json.load(f)
-        waggle_angle = metadata["waggle_angle"]
-        waggle_duration = metadata["waggle_duration"]
-        waggle_vector = np.array([np.cos(waggle_angle), np.sin(waggle_angle)], dtype=np.float32)
-        return waggle_vector, waggle_duration
 
     def augment_video(self, video, augments, crop_perc, p):
         """initializes self.augmenter by defining different augmentations"""
@@ -215,7 +206,7 @@ class WDDSampler():
         class_bins = copy.deepcopy(self.class_bins)
         maxl = max(len(c) for c in class_bins)
         for c in class_bins:
-            c += random.choices(c, k=maxl-len(c))
+            c.extend(random.choices(c, k=maxl-len(c)))
         idx_list = [idx for c in class_bins for idx in c]
         random.shuffle(idx_list)
 
