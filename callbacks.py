@@ -93,6 +93,7 @@ class SaveModelCallback(Callback):
         if testing_accuracy > self.accuracy_threshold:
             save_path = os.path.join(self.path_checkpoints, "save_best.pth")
             SaveModelCallback.save_model(model, optimizer, epoch, stats, save_path)
+            self.accuracy_threshold = testing_accuracy
         elif (epoch + 1) % self.save_interval == 0:
             save_path = os.path.join(self.path_checkpoints, "save_last.pth")
             SaveModelCallback.save_model(model, optimizer, epoch, stats, save_path)
